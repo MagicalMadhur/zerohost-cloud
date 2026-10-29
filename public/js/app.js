@@ -307,7 +307,7 @@ async function loadTemplates() {
 }
 
 function renderTemplates() {
-  const container = document.getElementById('template-options');
+  const container = document.getElementById('template-options') || document.getElementById('templates-list');
   if (!container) return;
 
   container.innerHTML = state.templates.map(t => `
@@ -328,22 +328,35 @@ function selectTemplate(templateId) {
   state.selectedTemplateId = templateId;
   const tmpl = state.templates.find(t => t.id === templateId);
   if (tmpl) {
-    state.selectedCompute = tmpl.compute;
+    state.selectedCompute = tmpl.compute || 'github_pages_jsdelivr';
     updateComputeCardsSelection();
+
+    const nameInput = document.getElementById('wizard-project-name');
+    if (nameInput && (!nameInput.value || nameInput.value.includes('Velocity') || nameInput.value === 'My Website')) {
+      if (templateId === 'velocity-showcase') {
+        nameInput.value = 'velocity';
+      }
+    }
   }
   renderTemplates();
 }
 
-function selectCompute(cardEl) {
-  document.querySelectorAll('.compute-card').forEach(c => c.classList.remove('selected'));
-  cardEl.classList.add('selected');
-  state.selectedCompute = cardEl.getAttribute('data-compute');
+function selectCompute(providerOrEl) {
+  let provider = providerOrEl;
+  if (typeof providerOrEl !== 'string' && providerOrEl && providerOrEl.getAttribute) {
+    provider = providerOrEl.getAttribute('data-compute');
+  }
+  state.selectedCompute = provider;
+  document.querySelectorAll('.compute-card').forEach(c => {
+    const input = c.querySelector('input[name="compute_provider"]');
+    const isMatch = (input && input.value === provider) || (c.getAttribute('data-compute') === provider);
+    c.classList.toggle('selected', isMatch);
+    if (input) input.checked = isMatch;
+  });
 }
 
 function updateComputeCardsSelection() {
-  document.querySelectorAll('.compute-card').forEach(c => {
-    c.classList.toggle('selected', c.getAttribute('data-compute') === state.selectedCompute);
-  });
+  selectCompute(state.selectedCompute);
 }
 
 // Wizard Steps Flow
