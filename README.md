@@ -3,6 +3,9 @@
 > **The Zero-Cost Cloud Hosting Platform for Non-Technical Users.**  
 > Users sign in with GitHub, pick a starter or upload their site, and launch in 60 seconds. Everything behind the scenes—private repos, CDN routing, GitHub Actions, and serverless compute—is automated.
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/MagicalMadhur/zerohost-cloud)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/MagicalMadhur/zerohost-cloud)
+
 ---
 
 ## 🌟 Key Features
