@@ -46,8 +46,66 @@ function saveProjects(projects) {
 
 let globalProjects = loadProjects();
 
+// Sync project files dynamically from GitHub repository
+async function syncProjectFromGitHub(project, token) {
+  if (!project || !token || token === 'demo-token' || !project.slug) return;
+  const owner = project.owner || 'MagicalMadhur';
+  const repo = `${project.slug}-source`;
+
+  try {
+    const service = new GitHubService(token, false);
+    const treeRes = await service.api.get(`/repos/${owner}/${repo}/git/trees/main?recursive=1`);
+    if (!treeRes.data || !Array.isArray(treeRes.data.tree)) return;
+
+    const tree = treeRes.data.tree;
+    const blobItems = tree.filter(item => item.type === 'blob');
+
+    const updatedFiles = [];
+    for (const item of blobItems) {
+      const existing = (project.files || []).find(f => f.path === item.path);
+      const isText = /\.(html|css|js|json|md|txt|py|env|yml|yaml|svg|xml|ini|toml)$/i.test(item.path);
+
+      if (existing && existing.sha === item.sha && existing.content) {
+        updatedFiles.push(existing);
+        continue;
+      }
+
+      if (isText && item.size < 500000) {
+        try {
+          const blobRes = await service.api.get(`/repos/${owner}/${repo}/git/blobs/${item.sha}`);
+          const content = Buffer.from(blobRes.data.content, 'base64').toString('utf-8');
+          updatedFiles.push({
+            path: item.path,
+            content,
+            size: item.size,
+            sha: item.sha,
+            isBinary: false
+          });
+        } catch (bErr) {
+          if (existing) updatedFiles.push(existing);
+        }
+      } else {
+        updatedFiles.push({
+          path: item.path,
+          content: `[Binary file: ${path.basename(item.path)}]`,
+          size: item.size,
+          sha: item.sha,
+          isBinary: true
+        });
+      }
+    }
+
+    if (updatedFiles.length > 0) {
+      project.files = updatedFiles;
+      saveProjects(globalProjects);
+    }
+  } catch (err) {
+    // Silently continue if repo tree can't be reached
+  }
+}
+
 // List Projects (Strictly Isolated to the Logged-in User)
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   const user = req.session?.user;
 
   if (!user) {
@@ -63,6 +121,24 @@ router.get('/', (req, res) => {
 
   // Filter projects belonging exclusively to this authenticated user
   const userProjects = globalProjects.filter(p => p.owner === user.login || (!p.owner && user.login === 'MagicalMadhur'));
+
+  // Ensure known projects (e.g. velocity) have correct liveUrl and gateway mappings
+  userProjects.forEach(p => {
+    if (p.slug === 'velocity' || p.name === 'velocity') {
+      p.owner = 'MagicalMadhur';
+      p.privateRepo = 'https://github.com/MagicalMadhur/velocity-source';
+      p.publicRepo = 'https://github.com/MagicalMadhur/velocity-cdn';
+      p.liveUrl = 'https://magicalmadhur.github.io/velocity-cdn/';
+      p.cdnUrl = 'https://cdn.jsdelivr.net/gh/MagicalMadhur/velocity-cdn@latest/';
+    }
+  });
+
+  // Sync projects from GitHub if user has an active token
+  const token = req.session?.githubToken;
+  if (token && token !== 'demo-token') {
+    await Promise.all(userProjects.map(p => syncProjectFromGitHub(p, token)));
+  }
+
   const activeCount = userProjects.filter(p => p.status === 'active').length;
 
   // Calculate actual file sizes stored
@@ -131,6 +207,11 @@ router.get('/:id/preview', (req, res) => {
   const project = globalProjects.find((p) => p.id === req.params.id);
   if (!project) return res.status(404).send('<h1>Project not found</h1>');
 
+  // Immediately redirect to real live URL if deployed (e.g. GitHub Pages)
+  if (project.liveUrl && project.liveUrl.startsWith('http')) {
+    return res.redirect(project.liveUrl);
+  }
+
   const htmlFile = project.files.find(f => f.path.endsWith('.html') || f.path === 'src/index.html');
   if (!htmlFile) {
     return res.send(`
@@ -170,9 +251,15 @@ router.get('/:id/preview', (req, res) => {
 });
 
 // Get Project Details & Classified Files
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   const project = globalProjects.find((p) => p.id === req.params.id);
   if (!project) return res.status(404).json({ error: 'Project not found' });
+
+  // Sync latest from GitHub if authenticated
+  const token = req.session?.githubToken;
+  if (token && token !== 'demo-token') {
+    await syncProjectFromGitHub(project, token);
+  }
 
   // Enrich files with classification and CDN URLs
   const enrichedFiles = (project.files || []).map(f => ({

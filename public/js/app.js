@@ -106,6 +106,22 @@ function switchTab(tabName) {
 
   if (tabName === 'filemanager') {
     populateFileManagerProjectDropdown();
+    if (state.activeFileManagerProjectId) {
+      fetch(`/api/projects/${state.activeFileManagerProjectId}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data && data.project) {
+            const idx = state.projects.findIndex(p => p.id === state.activeFileManagerProjectId);
+            if (idx !== -1) {
+              state.projects[idx] = data.project;
+            } else {
+              state.projects.push(data.project);
+            }
+            loadProjectForFileManager();
+          }
+        })
+        .catch(() => {});
+    }
   }
 }
 
@@ -523,7 +539,7 @@ function renderProjects(projects) {
       <div class="project-meta">
         <div class="meta-row">
           <span class="meta-key">Live Web Page:</span>
-          <span class="meta-val"><a href="/api/projects/${p.id}/preview" target="_blank" style="color: var(--accent); text-decoration: none;">Instant Preview 👁️</a></span>
+          <span class="meta-val"><a href="${p.liveUrl || `/api/projects/${p.id}/preview`}" target="_blank" style="color: var(--accent); text-decoration: none;">Instant Preview 👁️</a></span>
         </div>
         <div class="meta-row">
           <span class="meta-key">Private Repo:</span>
@@ -540,7 +556,7 @@ function renderProjects(projects) {
       </div>
 
       <div class="project-actions">
-        <a href="/api/projects/${p.id}/preview" target="_blank" class="btn-open-live" style="background: rgba(16, 185, 129, 0.15); color: var(--success); border-color: rgba(16, 185, 129, 0.3);">👁️ Preview</a>
+        <a href="${p.liveUrl || `/api/projects/${p.id}/preview`}" target="_blank" class="btn-open-live" style="background: rgba(16, 185, 129, 0.15); color: var(--success); border-color: rgba(16, 185, 129, 0.3);">👁️ Preview</a>
         <a href="${p.liveUrl}" target="_blank" class="btn-card-action" title="Open Public Gateway / Pages">Pages ↗</a>
         <button class="btn-card-action" onclick="openProjectInFileManager('${p.id}')">📂 File Manager</button>
         <button class="btn-card-action" style="color: var(--danger);" onclick="deleteProject('${p.id}')">🗑️</button>
@@ -566,10 +582,27 @@ async function deleteProject(id) {
 // Hostinger-Style Site File Manager & CDN Gateway
 // =============================================================================
 
-function openProjectInFileManager(projectId) {
+async function openProjectInFileManager(projectId) {
   state.activeFileManagerProjectId = projectId;
   state.activeEditorProjectId = projectId;
   switchTab('filemanager');
+  try {
+    const res = await fetch(`/api/projects/${projectId}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.project) {
+        const idx = state.projects.findIndex(p => p.id === projectId);
+        if (idx !== -1) {
+          state.projects[idx] = data.project;
+        } else {
+          state.projects.push(data.project);
+        }
+        loadProjectForFileManager();
+      }
+    }
+  } catch (e) {
+    console.warn('Sync on open failed:', e);
+  }
 }
 const openProjectInEditor = openProjectInFileManager;
 
@@ -612,7 +645,7 @@ function loadProjectForFileManager() {
   // Set Preview & Public URL buttons
   const previewBtn = document.getElementById('btn-filemanager-preview');
   const publicBtn = document.getElementById('btn-filemanager-public');
-  if (previewBtn) previewBtn.href = `/api/projects/${project.id}/preview`;
+  if (previewBtn) previewBtn.href = project.liveUrl || `/api/projects/${project.id}/preview`;
   if (publicBtn) publicBtn.href = project.liveUrl;
 
   const runContainer = document.getElementById('tree-run-files');

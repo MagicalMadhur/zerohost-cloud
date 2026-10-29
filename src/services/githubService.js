@@ -277,14 +277,20 @@ jobs:
           touch dist/.nojekyll
       - name: Deploy to Public Gateway
         run: |
-          git clone https://x-access-token:\${{ secrets.DEPLOY_TOKEN }}@github.com/${owner}/${publicRepo}.git gateway
-          find gateway -maxdepth 1 -not -name '.git' -not -name '.' -not -name '..' -exec rm -rf {} + 2>/dev/null || true
-          cp -r dist/* gateway/
+          mkdir -p gateway
+          git clone https://x-access-token:\${{ secrets.DEPLOY_TOKEN }}@github.com/${owner}/${publicRepo}.git gateway || true
           cd gateway
+          if [ ! -d ".git" ]; then
+            git init
+            git remote add origin https://x-access-token:\${{ secrets.DEPLOY_TOKEN }}@github.com/${owner}/${publicRepo}.git
+          fi
+          git checkout -B main
+          find . -maxdepth 1 -not -name '.git' -not -name '.' -not -name '..' -exec rm -rf {} + 2>/dev/null || true
+          cp -r ../dist/* ./
           git config user.name "ZeroHost Bot"
           git config user.email "bot@zerohost.dev"
           git add -A
-          git diff --staged --quiet || (git commit -m "🚀 Auto Deploy: $(date -u '+%Y-%m-%d %H:%M:%S')" && git push)
+          git diff --staged --quiet || (git commit -m "🚀 Auto Deploy: $(date -u '+%Y-%m-%d %H:%M:%S')" && git push -u origin main --force)
       - name: Purge jsDelivr CDN Cache
         run: |
           curl -s "https://purge.jsdelivr.net/gh/${owner}/${publicRepo}@latest/" || true
