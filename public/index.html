@@ -559,7 +559,7 @@ DNS Setup for Custom Domains:
                 ZeroHost recommends the best free compute engine based on your selected language.
               </p>
               <div class="compute-options">
-                <label class="compute-card selected" onclick="selectCompute('github_pages_jsdelivr')">
+                <label class="compute-card selected" data-compute="github_pages_jsdelivr" onclick="selectCompute('github_pages_jsdelivr')">
                   <input type="radio" name="compute_provider" value="github_pages_jsdelivr" checked style="display: none;">
                   <div class="compute-header">
                     <span class="compute-title">⚡ GitHub Pages + jsDelivr CDN</span>
@@ -570,7 +570,7 @@ DNS Setup for Custom Domains:
                   </div>
                 </label>
 
-                <label class="compute-card" onclick="selectCompute('cloudflare_workers')">
+                <label class="compute-card" data-compute="cloudflare_workers" onclick="selectCompute('cloudflare_workers')">
                   <input type="radio" name="compute_provider" value="cloudflare_workers" style="display: none;">
                   <div class="compute-header">
                     <span class="compute-title">☁️ Cloudflare Workers (Edge Functions)</span>
@@ -581,7 +581,7 @@ DNS Setup for Custom Domains:
                   </div>
                 </label>
 
-                <label class="compute-card" onclick="selectCompute('vercel_serverless')">
+                <label class="compute-card" data-compute="vercel_serverless" onclick="selectCompute('vercel_serverless')">
                   <input type="radio" name="compute_provider" value="vercel_serverless" style="display: none;">
                   <div class="compute-header">
                     <span class="compute-title">▲ Vercel Serverless (Python / Node)</span>
