@@ -9,7 +9,7 @@ let state = {
   hasCliLogin: false,
   projects: [],
   templates: [],
-  selectedTemplateId: 'velocity-showcase',
+  selectedTemplateId: 'landing-page',
   selectedCompute: 'github_pages_jsdelivr',
   wizardStep: 1,
   activeFileManagerProjectId: null,
@@ -330,13 +330,6 @@ function selectTemplate(templateId) {
   if (tmpl) {
     state.selectedCompute = tmpl.compute || 'github_pages_jsdelivr';
     updateComputeCardsSelection();
-
-    const nameInput = document.getElementById('wizard-project-name');
-    if (nameInput && (!nameInput.value || nameInput.value.includes('Velocity') || nameInput.value === 'My Website')) {
-      if (templateId === 'velocity-showcase') {
-        nameInput.value = 'velocity';
-      }
-    }
   }
   renderTemplates();
 }
