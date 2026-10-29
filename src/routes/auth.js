@@ -26,11 +26,24 @@ router.get('/github', (req, res) => {
   const redirectUri = process.env.GITHUB_CALLBACK_URL || `${protocol}://${host}/api/auth/github/callback`;
 
   if (!clientId || clientId === 'your_github_client_id_here') {
-    return res.redirect('/?notice=oauth_not_configured_demo_enabled');
+    return res.redirect('/setup-oauth.html');
   }
 
   const url = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=repo,workflow,user`;
   res.redirect(url);
+});
+
+// Configure OAuth on the fly (1-time setup)
+router.post('/configure-oauth', (req, res) => {
+  const { clientId, clientSecret } = req.body;
+  if (!clientId || !clientSecret) {
+    return res.status(400).json({ error: 'Both GitHub Client ID and Client Secret are required.' });
+  }
+
+  process.env.GITHUB_CLIENT_ID = clientId.trim();
+  process.env.GITHUB_CLIENT_SECRET = clientSecret.trim();
+
+  res.json({ success: true, redirect: '/api/auth/github' });
 });
 
 // OAuth Callback

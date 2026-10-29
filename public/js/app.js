@@ -136,15 +136,14 @@ function updateAppViewMode() {
 
     if (publicAuthActions) {
       publicAuthActions.innerHTML = `
-        <button class="btn-github-login" style="padding: 0.5rem 1.1rem; font-size: 0.85rem;" onclick="openSignInModal()">
+        <a href="/api/auth/github" class="btn-github-login" style="padding: 0.5rem 1.1rem; font-size: 0.85rem; text-decoration: none;">
           <span>🐙</span> Sign In with GitHub
-        </button>
-        <button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.85rem;" onclick="openSignInModal()">
+        </a>
+        <a href="/api/auth/github" class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.85rem; text-decoration: none;">
           <span>🚀</span> Get Started Free
-        </button>
+        </a>
       `;
     }
-    updateCalculator();
   }
 }
 
@@ -165,7 +164,7 @@ function showAppConsole() {
     if (appView) appView.style.display = 'flex';
     switchTab('projects');
   } else {
-    openSignInModal();
+    window.location.href = '/api/auth/github';
   }
 }
 
@@ -271,75 +270,12 @@ function renderAuth() {
   }
 }
 
-function openSignInModal() {
-  const modal = document.getElementById('signin-modal');
-  if (!modal) return;
-  modal.style.display = 'flex';
-
-  const cliBox = document.getElementById('signin-cli-box');
-  if (cliBox) {
-    if (state.hasCliLogin) {
-      cliBox.innerHTML = `
-        <button class="btn-primary" style="width: 100%; justify-content: center; padding: 0.75rem; margin-bottom: 1rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="cliLogin()">
-          <span>⚡</span> Quick Sign-In via Local GitHub CLI (@MagicalMadhur)
-        </button>
-        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
-          <div style="flex: 1; height: 1px; background: var(--border);"></div>
-          <span style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase;">or</span>
-          <div style="flex: 1; height: 1px; background: var(--border);"></div>
-        </div>
-      `;
-      cliBox.style.display = 'block';
-    } else {
-      cliBox.innerHTML = '';
-      cliBox.style.display = 'none';
-    }
-  }
-}
-
-function closeSignInModal() {
-  const modal = document.getElementById('signin-modal');
-  if (modal) modal.style.display = 'none';
-}
-
-async function handleTokenLogin() {
-  const input = document.getElementById('input-pat-token');
-  const token = input ? input.value.trim() : '';
-
-  if (!token) {
-    alert('Please enter a valid GitHub token.');
-    return;
-  }
-
-  showNotification('Authenticating with GitHub...');
-
-  try {
-    const res = await fetch('/api/auth/token-login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token })
-    });
-
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Authentication failed');
-
-    state.user = data.user;
-    closeSignInModal();
-    updateAppViewMode();
-    await loadProjects();
-    showNotification(`⚡ Successfully signed in as @${data.user.login}! Ready to manage deployments.`);
-  } catch (err) {
-    alert('Sign in error: ' + err.message);
-  }
-}
-
 async function cliLogin() {
   try {
     const res = await fetch('/api/auth/cli-login', { method: 'POST' });
     const data = await res.json();
     if (data.success) {
       state.user = data.user;
-      closeSignInModal();
       updateAppViewMode();
       await loadProjects();
       showNotification(`⚡ Signed in as @${data.user.login}! Ready to manage your cloud deployments.`);
@@ -548,9 +484,9 @@ function renderProjects(projects) {
         <h3>Sign In to Manage Your Deployments</h3>
         <p>Connect your GitHub account to access your private repositories, live web apps, and file manager.</p>
         <div style="display: flex; gap: 0.75rem; justify-content: center; margin-top: 1.25rem;">
-          <button onclick="openSignInModal()" class="btn-github-login" style="padding: 0.6rem 1.4rem; font-size: 0.95rem;">
+          <a href="/api/auth/github" class="btn-github-login" style="padding: 0.6rem 1.4rem; font-size: 0.95rem; text-decoration: none;">
             <span>🐙</span> Sign In with GitHub
-          </button>
+          </a>
         </div>
       </div>
     `;

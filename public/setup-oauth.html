@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setup GitHub OAuth — ZeroHost Cloud</title>
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .setup-container {
+      max-width: 680px;
+      margin: 3rem auto;
+      padding: 2.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+    .setup-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .setup-step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .step-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--accent);
+      background: rgba(6, 182, 212, 0.12);
+      padding: 2px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    .copy-field {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #090e1a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.6rem 0.9rem;
+      margin-top: 0.5rem;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      color: #38bdf8;
+      word-break: break-all;
+    }
+    .copy-btn {
+      background: none;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-muted);
+      border-radius: 6px;
+      padding: 0.25rem 0.6rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+      margin-left: 0.75rem;
+      white-space: nowrap;
+    }
+    .copy-btn:hover {
+      color: #fff;
+      border-color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div style="min-height: 100vh; padding: 2rem 1rem;">
+    <!-- Top Bar -->
+    <div style="max-width: 680px; margin: 0 auto 1.5rem auto; display: flex; justify-content: space-between; align-items: center;">
+      <a href="/" style="display: flex; align-items: center; gap: 0.6rem; text-decoration: none;">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%); display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">⚡</div>
+        <div style="font-weight: 800; font-size: 1.1rem; color: #fff;">ZeroHost</div>
+      </a>
+      <a href="/" style="color: var(--text-muted); font-size: 0.85rem; text-decoration: none;">← Back to Home</a>
+    </div>
+
+    <div class="setup-container">
+      <div class="setup-header">
+        <h1 style="font-size: 1.75rem; font-weight: 800; color: #fff; margin-bottom: 0.5rem;">Connect GitHub Authentication</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">
+          To enable seamless 1-click GitHub Sign-In for everyone on your domain, register a free GitHub OAuth application. (Takes 30 seconds)
+        </p>
+      </div>
+
+      <!-- Step 1: Register on GitHub -->
+      <div class="setup-step">
+        <span class="step-badge">Step 1 of 2</span>
+        <h3 style="color: #fff; font-size: 1.1rem; margin-bottom: 0.5rem;">Register OAuth Application on GitHub</h3>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">
+          Click the button below to open GitHub's OAuth registration page. Fill in these two URLs:
+        </p>
+
+        <div style="margin-bottom: 0.75rem;">
+          <div style="font-size: 0.75rem; color: var(--text-dim); font-weight: 600;">HOMEPAGE URL:</div>
+          <div class="copy-field">
+            <span id="field-homepage">https://zerohost-platform.onrender.com</span>
+            <button class="copy-btn" onclick="copyText('field-homepage')">📋 Copy</button>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 1.25rem;">
+          <div style="font-size: 0.75rem; color: var(--text-dim); font-weight: 600;">AUTHORIZATION CALLBACK URL:</div>
+          <div class="copy-field">
+            <span id="field-callback">https://zerohost-platform.onrender.com/api/auth/github/callback</span>
+            <button class="copy-btn" onclick="copyText('field-callback')">📋 Copy</button>
+          </div>
+        </div>
+
+        <a href="https://github.com/settings/applications/new" target="_blank" class="btn-primary" style="display: flex; justify-content: center; width: 100%; text-decoration: none; padding: 0.75rem;">
+          <span>🐙</span> Open GitHub OAuth Registration Page ↗
+        </a>
+      </div>
+
+      <!-- Step 2: Paste Credentials -->
+      <div class="setup-step">
+        <span class="step-badge">Step 2 of 2</span>
+        <h3 style="color: #fff; font-size: 1.1rem; margin-bottom: 0.5rem;">Paste Client ID & Client Secret</h3>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">
+          Once created on GitHub, paste the generated credentials below to immediately activate GitHub login.
+        </p>
+
+        <form onsubmit="handleOAuthSave(event)">
+          <div style="margin-bottom: 1rem;">
+            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.4rem;">
+              Client ID
+            </label>
+            <input type="text" id="input-client-id" class="form-input" placeholder="e.g. Ov23li98xxxxxx or Iv1.xxxxxx" required style="width: 100%;">
+          </div>
+
+          <div style="margin-bottom: 1.25rem;">
+            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.4rem;">
+              Client Secret
+            </label>
+            <input type="password" id="input-client-secret" class="form-input" placeholder="e.g. 4d8f1e6b8c9a3..." required style="width: 100%;">
+          </div>
+
+          <button type="submit" id="btn-save-oauth" class="btn-primary" style="width: 100%; justify-content: center; padding: 0.8rem; font-size: 0.95rem;">
+            <span>⚡</span> Save & Sign In with GitHub Now
+          </button>
+        </form>
+      </div>
+
+      <!-- Render Persist Tip -->
+      <div style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 12px; padding: 1rem 1.25rem; font-size: 0.85rem; color: #c7d2fe;">
+        <strong>💡 Permanent Render Setup:</strong> To persist your credentials permanently across restarts, also add them to your 
+        <strong>Render Dashboard → zerohost-platform → Environment</strong> as <code>GITHUB_CLIENT_ID</code> and <code>GITHUB_CLIENT_SECRET</code>.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Set dynamic URLs based on current origin
+    document.addEventListener('DOMContentLoaded', () => {
+      const origin = window.location.origin;
+      const elHome = document.getElementById('field-homepage');
+      const elCb = document.getElementById('field-callback');
+      if (elHome) elHome.textContent = origin;
+      if (elCb) elCb.textContent = origin + '/api/auth/github/callback';
+    });
+
+    function copyText(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      navigator.clipboard.writeText(el.textContent.trim()).then(() => {
+        alert('Copied to clipboard: ' + el.textContent.trim());
+      });
+    }
+
+    async function handleOAuthSave(e) {
+      e.preventDefault();
+      const clientId = document.getElementById('input-client-id').value.trim();
+      const clientSecret = document.getElementById('input-client-secret').value.trim();
+      const btn = document.getElementById('btn-save-oauth');
+
+      btn.disabled = true;
+      btn.innerHTML = '<span>⏳</span> Activating GitHub OAuth...';
+
+      try {
+        const res = await fetch('/api/auth/configure-oauth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clientId, clientSecret })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to configure OAuth');
+
+        // Redirect directly to the newly configured GitHub OAuth login!
+        window.location.href = data.redirect || '/api/auth/github';
+      } catch (err) {
+        alert('Configuration error: ' + err.message);
+        btn.disabled = false;
+        btn.innerHTML = '<span>⚡</span> Save & Sign In with GitHub Now';
+      }
+    }
+  </script>
+</body>
+</html>
