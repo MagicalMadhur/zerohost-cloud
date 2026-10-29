@@ -91,6 +91,26 @@ router.post('/cli-login', async (req, res) => {
   }
 });
 
+// Direct Personal Access Token Login (for instantaneous cloud login)
+router.post('/token-login', async (req, res) => {
+  const { token } = req.body;
+  if (!token || !token.trim()) {
+    return res.status(400).json({ error: 'GitHub Personal Access Token is required' });
+  }
+
+  try {
+    const service = new GitHubService(token.trim(), false);
+    const user = await service.getUser();
+
+    req.session.githubToken = token.trim();
+    req.session.user = user;
+
+    res.json({ success: true, user, message: `Connected as @${user.login}` });
+  } catch (err) {
+    res.status(401).json({ error: 'Invalid GitHub Token: ' + (err.response?.data?.message || err.message) });
+  }
+});
+
 // 1-Click Demo Login
 router.post('/demo-login', async (req, res) => {
   const service = new GitHubService(null, true);

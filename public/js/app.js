@@ -37,7 +37,7 @@ function handleUrlParams() {
   if (notice) {
     let msg = 'Notice: System message received.';
     if (notice === 'oauth_not_configured_demo_enabled') {
-      msg = 'ℹ️ GitHub OAuth is in Demo Mode. Click "⚡ Connect as @MagicalMadhur (CLI)" or "⚡ Demo Access" to test!';
+      msg = 'ℹ️ GitHub OAuth credentials not detected yet. Add GITHUB_CLIENT_ID in Render Environment settings to enable global 1-click login.';
     }
     showNotification(msg, 'info');
   } else if (error) {
@@ -94,7 +94,7 @@ function switchTab(tabName) {
     item.classList.toggle('active', item.getAttribute('data-tab') === tabName);
   });
 
-  const views = ['projects', 'wizard', 'filemanager', 'architecture', 'calculator'];
+  const views = ['home', 'projects', 'wizard', 'filemanager', 'getting-started', 'compare', 'calculator', 'architecture'];
   views.forEach(v => {
     const el = document.getElementById(`view-${v}`);
     if (el) el.style.display = (v === tabName) ? 'block' : 'none';
@@ -102,7 +102,52 @@ function switchTab(tabName) {
 
   if (tabName === 'filemanager') {
     populateFileManagerProjectDropdown();
+  } else if (tabName === 'calculator') {
+    updateCalculator();
   }
+}
+
+// Interactive Hosting Savings Calculator
+function updateCalculator() {
+  const sitesInput = document.getElementById('calc-slider-sites');
+  const bandwidthInput = document.getElementById('calc-slider-bandwidth');
+  const storageInput = document.getElementById('calc-slider-storage');
+
+  if (!sitesInput || !bandwidthInput) return;
+
+  const sites = parseInt(sitesInput.value, 10) || 1;
+  const bandwidth = parseInt(bandwidthInput.value, 10) || 50;
+  const storage = parseInt(storageInput.value, 10) || 500;
+
+  const elSites = document.getElementById('calc-val-sites');
+  const elBw = document.getElementById('calc-val-bandwidth');
+  const elStorage = document.getElementById('calc-val-storage');
+
+  if (elSites) elSites.textContent = `${sites} site${sites > 1 ? 's' : ''}`;
+  if (elBw) elBw.textContent = bandwidth >= 1000 ? `${(bandwidth / 1000).toFixed(1)} TB` : `${bandwidth} GB`;
+  if (elStorage) elStorage.textContent = storage >= 1000 ? `${(storage / 1000).toFixed(1)} GB` : `${storage} MB`;
+
+  // Hostinger renewal calculation ($11.99/mo + extra sites fees)
+  const hostingerAnnual = (sites <= 1 ? 47.88 : (sites * 38 + 140));
+
+  // Vercel Pro: $20/mo/user ($240/yr) + $40 per 100GB over 100GB
+  const vercelOverage = Math.max(0, bandwidth - 100);
+  const vercelAnnual = (sites > 1 ? 240 : 0) + (vercelOverage > 0 ? (vercelOverage / 100 * 40 * 12) : 0);
+
+  // AWS Cloud: $15/mo base EC2 + $0.09/GB egress bandwidth + S3 storage
+  const awsAnnual = (sites * 15 * 12) + (bandwidth * 0.09 * 12) + (sites * (storage / 1000) * 0.023 * 12);
+
+  const costH = document.getElementById('calc-cost-hostinger');
+  const costV = document.getElementById('calc-cost-vercel');
+  const costA = document.getElementById('calc-cost-aws');
+  const totalSaved = document.getElementById('calc-total-saved');
+
+  if (costH) costH.textContent = `$${Math.round(hostingerAnnual)} / yr`;
+  if (costV) costV.textContent = `$${Math.round(vercelAnnual)} / yr`;
+  if (costA) costA.textContent = `$${Math.round(awsAnnual)} / yr`;
+
+  const avgSaved = Math.round((hostingerAnnual + vercelAnnual + awsAnnual) / 3);
+  if (totalSaved) totalSaved.textContent = `$${avgSaved.toLocaleString()}.00`;
 }
 
 // Setup drag & drop on File Manager dropzone
@@ -151,26 +196,67 @@ function renderAuth() {
 
   if (state.user) {
     container.innerHTML = `
-      <div class="user-badge">
-        <img src="${state.user.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'}" class="user-avatar" alt="Avatar">
-        <span class="user-name">@${state.user.login || state.user.name}</span>
-        <button class="btn-logout" title="Log out" onclick="logout()">×</button>
+      <div class="user-badge" style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); padding: 0.35rem 0.85rem; border-radius: 9999px; display: flex; align-items: center; gap: 0.6rem;">
+        <img src="${state.user.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'}" class="user-avatar" alt="Avatar" style="width: 24px; height: 24px; border-radius: 50%;">
+        <span class="user-name" style="font-weight: 700; font-size: 0.85rem; color: #fff;">@${state.user.login || state.user.name}</span>
+        <span style="font-size: 0.65rem; background: var(--success); color: #000; font-weight: 800; padding: 1px 5px; border-radius: 4px;">PRO ($0)</span>
+        <button class="btn-logout" title="Log out" onclick="logout()" style="background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 1.1rem; line-height: 1;">×</button>
       </div>
     `;
   } else {
     container.innerHTML = `
-      <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+      <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
         ${state.hasCliLogin ? `
           <button class="btn-primary" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;" onclick="cliLogin()" title="Instant 1-Click login using local GitHub CLI session">
             <span>⚡</span> Connect as @MagicalMadhur (CLI)
           </button>
         ` : ''}
-        <a href="/api/auth/github" class="btn-github-login">
-          <span>🐙</span> Connect GitHub
-        </a>
-        <button class="btn-demo-login" onclick="demoLogin()">⚡ Demo Access</button>
+        <button class="btn-github-login" style="padding: 0.45rem 1rem; font-size: 0.85rem;" onclick="openSignInModal()">
+          <span>🐙</span> Sign In with GitHub
+        </button>
       </div>
     `;
+  }
+}
+
+function openSignInModal() {
+  const modal = document.getElementById('signin-modal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeSignInModal() {
+  const modal = document.getElementById('signin-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function handleTokenLogin() {
+  const input = document.getElementById('input-pat-token');
+  const token = input ? input.value.trim() : '';
+
+  if (!token) {
+    alert('Please enter a valid GitHub token.');
+    return;
+  }
+
+  showNotification('Authenticating with GitHub...');
+
+  try {
+    const res = await fetch('/api/auth/token-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Authentication failed');
+
+    state.user = data.user;
+    closeSignInModal();
+    renderAuth();
+    await loadProjects();
+    showNotification(`⚡ Successfully signed in as @${data.user.login}! Ready to manage deployments.`);
+  } catch (err) {
+    alert('Sign in error: ' + err.message);
   }
 }
 
@@ -182,26 +268,12 @@ async function cliLogin() {
       state.user = data.user;
       renderAuth();
       await loadProjects();
-      showNotification(`⚡ Connected as @${data.user.login} via GitHub CLI! Fully authorized for automated 2-repo deployment.`);
+      showNotification(`⚡ Signed in as @${data.user.login}! Ready to manage your cloud deployments.`);
     } else {
       showNotification(`⚠️ ${data.error}`, 'error');
     }
   } catch (err) {
-    showNotification('CLI login failed: ' + err.message, 'error');
-  }
-}
-
-async function demoLogin() {
-  try {
-    const res = await fetch('/api/auth/demo-login', { method: 'POST' });
-    const data = await res.json();
-    if (data.success) {
-      state.user = data.user;
-      renderAuth();
-      loadProjects();
-    }
-  } catch (err) {
-    alert('Demo login failed: ' + err.message);
+    showNotification('Sign in error: ' + err.message, 'error');
   }
 }
 
@@ -209,6 +281,7 @@ async function logout() {
   await fetch('/api/auth/logout', { method: 'POST' });
   state.user = null;
   renderAuth();
+  await loadProjects();
 }
 
 // Templates Loader
@@ -399,12 +472,11 @@ function renderProjects(projects) {
       <div class="empty-state" style="grid-column: 1 / -1;">
         <div class="empty-icon">🔒</div>
         <h3>Sign In to Manage Your Deployments</h3>
-        <p>Connect your GitHub account or click Demo Access to view and manage your private cloud projects.</p>
+        <p>Connect your GitHub account to access your private repositories, live web apps, and file manager.</p>
         <div style="display: flex; gap: 0.75rem; justify-content: center; margin-top: 1.25rem;">
-          <a href="/api/auth/github" class="btn-github-login" style="padding: 0.6rem 1.2rem; font-size: 0.95rem;">
-            <span>🐙</span> Connect GitHub
+          <a href="/api/auth/github" class="btn-github-login" style="padding: 0.6rem 1.4rem; font-size: 0.95rem;">
+            <span>🐙</span> Sign In with GitHub
           </a>
-          <button class="btn-demo-login" style="padding: 0.6rem 1.2rem; font-size: 0.95rem;" onclick="demoLogin()">⚡ 1-Click Demo Access</button>
         </div>
       </div>
     `;
