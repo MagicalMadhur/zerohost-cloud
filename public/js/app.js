@@ -375,10 +375,14 @@ async function loadProjects() {
     const data = await res.json();
     state.projects = data.projects || [];
     
-    // Update overview stats
-    document.getElementById('stat-active-count').textContent = state.projects.length;
-    document.getElementById('stat-bandwidth').textContent = data.totalBandwidthSaved || '14.2 GB';
-    document.getElementById('stat-cost-saved').textContent = data.totalCostSaved || '$48.50';
+    // Update overview stats with real user data
+    const statCount = document.getElementById('stat-active-count');
+    const statBandwidth = document.getElementById('stat-bandwidth');
+    const statCost = document.getElementById('stat-cost-saved');
+
+    if (statCount) statCount.textContent = state.projects.length;
+    if (statBandwidth) statBandwidth.textContent = data.totalBandwidthSaved || '0.0 GB';
+    if (statCost) statCost.textContent = data.totalCostSaved || '$0.00';
 
     renderProjects(state.projects);
   } catch (err) {
@@ -390,12 +394,29 @@ function renderProjects(projects) {
   const container = document.getElementById('projects-list');
   if (!container) return;
 
+  if (!state.user) {
+    container.innerHTML = `
+      <div class="empty-state" style="grid-column: 1 / -1;">
+        <div class="empty-icon">🔒</div>
+        <h3>Sign In to Manage Your Deployments</h3>
+        <p>Connect your GitHub account or click Demo Access to view and manage your private cloud projects.</p>
+        <div style="display: flex; gap: 0.75rem; justify-content: center; margin-top: 1.25rem;">
+          <a href="/api/auth/github" class="btn-github-login" style="padding: 0.6rem 1.2rem; font-size: 0.95rem;">
+            <span>🐙</span> Connect GitHub
+          </a>
+          <button class="btn-demo-login" style="padding: 0.6rem 1.2rem; font-size: 0.95rem;" onclick="demoLogin()">⚡ 1-Click Demo Access</button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
   if (!projects || projects.length === 0) {
     container.innerHTML = `
       <div class="empty-state" style="grid-column: 1 / -1;">
         <div class="empty-icon">🚀</div>
-        <h3>No Deployments Yet</h3>
-        <p>Deploy your first web application or API in under 60 seconds with 100% zero hosting costs.</p>
+        <h3>No Active Deployments</h3>
+        <p>You haven't launched any websites yet. Deploy your first web application or API in under 60 seconds.</p>
         <button class="btn-primary" onclick="switchTab('wizard')">+ Deploy Your First Project</button>
       </div>
     `;

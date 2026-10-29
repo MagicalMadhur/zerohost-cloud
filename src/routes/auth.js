@@ -21,7 +21,9 @@ function getLocalCliToken() {
 // Redirect to GitHub OAuth
 router.get('/github', (req, res) => {
   const clientId = process.env.GITHUB_CLIENT_ID;
-  const redirectUri = process.env.GITHUB_CALLBACK_URL || 'http://localhost:4000/api/auth/github/callback';
+  const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+  const host = req.get('host');
+  const redirectUri = process.env.GITHUB_CALLBACK_URL || `${protocol}://${host}/api/auth/github/callback`;
 
   if (!clientId || clientId === 'your_github_client_id_here') {
     return res.redirect('/?notice=oauth_not_configured_demo_enabled');

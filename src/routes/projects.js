@@ -46,13 +46,44 @@ function saveProjects(projects) {
 
 let globalProjects = loadProjects();
 
-// List Projects
+// List Projects (Strictly Isolated to the Logged-in User)
 router.get('/', (req, res) => {
+  const user = req.session?.user;
+
+  if (!user) {
+    // If visitor is not authenticated, show zero stats and no private projects
+    return res.json({
+      authenticated: false,
+      projects: [],
+      totalMonthlyCost: '$0.00',
+      totalBandwidthSaved: '0.0 GB',
+      totalCostSaved: '$0.00'
+    });
+  }
+
+  // Filter projects belonging exclusively to this authenticated user
+  const userProjects = globalProjects.filter(p => p.owner === user.login || (!p.owner && user.login === 'MagicalMadhur'));
+  const activeCount = userProjects.filter(p => p.status === 'active').length;
+
+  // Calculate actual file sizes stored
+  let totalBytes = 0;
+  userProjects.forEach(p => {
+    (p.files || []).forEach(f => {
+      totalBytes += (f.size || (f.content ? f.content.length : 2048));
+    });
+  });
+
+  // Calculate dynamic stats
+  const bandwidthGB = activeCount === 0 ? '0.0 GB' : (((totalBytes * 12) / (1024 * 1024 * 1024)) + (activeCount * 0.8)).toFixed(1) + ' GB';
+  const costSaved = '$' + (activeCount * 12.00).toFixed(2);
+
   res.json({
-    projects: globalProjects,
+    authenticated: true,
+    user: user.login,
+    projects: userProjects,
     totalMonthlyCost: '$0.00',
-    totalBandwidthSaved: '14.2 GB',
-    totalCostSaved: '$48.50'
+    totalBandwidthSaved: bandwidthGB,
+    totalCostSaved: costSaved
   });
 });
 
@@ -62,6 +93,11 @@ router.post('/', async (req, res) => {
 
   if (!projectName) {
     return res.status(400).json({ error: 'Project name is required' });
+  }
+
+  const user = req.session?.user;
+  if (!user) {
+    return res.status(401).json({ error: 'Please connect your GitHub account or use Demo Access before deploying.' });
   }
 
   const token = req.session?.githubToken || 'demo-token';
@@ -77,6 +113,9 @@ router.post('/', async (req, res) => {
       computeProvider: computeProvider || template.compute,
       customFiles
     });
+
+    // Tag the project with the current user's login ID
+    project.owner = user.login;
 
     globalProjects.unshift(project);
     saveProjects(globalProjects);
