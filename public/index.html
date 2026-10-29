@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZeroHost — The $0 Cloud Hosting Platform for Non-Tech Users</title>
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">⚡</div>
+        <div class="brand-name">ZeroHost</div>
+        <span class="brand-badge">$0 CLOUD</span>
+      </div>
+
+      <ul class="nav-menu">
+        <li class="nav-item active" data-tab="projects">
+          <a href="#projects"><span class="nav-icon">📁</span> My Deployments</a>
+        </li>
+        <li class="nav-item" data-tab="wizard">
+          <a href="#wizard"><span class="nav-icon">🚀</span> New Deployment</a>
+        </li>
+        <li class="nav-item" data-tab="filemanager">
+          <a href="#filemanager"><span class="nav-icon">📂</span> Site File Manager</a>
+        </li>
+        <li class="nav-item" data-tab="architecture">
+          <a href="#architecture"><span class="nav-icon">🛡️</span> Zero-Cost Engine</a>
+        </li>
+        <li class="nav-item" data-tab="calculator">
+          <a href="#calculator"><span class="nav-icon">💰</span> Savings Calculator</a>
+        </li>
+      </ul>
+
+      <div class="sidebar-cost-box">
+        <div class="cost-label">Monthly Hosting Bill</div>
+        <div class="cost-value">$0.00</div>
+        <div class="cost-sub">🎉 Unlimited storage & CDN</div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-wrapper">
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="header-search">
+          <span>🔍</span>
+          <input type="text" id="project-search-input" placeholder="Search websites or APIs...">
+        </div>
+
+        <div class="header-actions">
+          <div id="auth-container">
+            <!-- Rendered dynamically by app.js: either GitHub Login + Demo Login or User Badge -->
+          </div>
+          <button class="btn-primary" onclick="switchTab('wizard')">
+            <span>+</span> Deploy New Site
+          </button>
+        </div>
+      </header>
+
+      <!-- Global Notification Banner -->
+      <div id="notification-banner" style="display: none; padding: 0.75rem 2rem; background: rgba(99, 102, 241, 0.15); border-bottom: 1px solid rgba(99, 102, 241, 0.3); font-size: 0.85rem; color: #c7d2fe; display: flex; align-items: center; justify-content: space-between;">
+        <span id="notification-text"></span>
+        <button onclick="dismissNotification()" style="background: none; border: none; color: #a5b4fc; font-size: 1.2rem; cursor: pointer;">×</button>
+      </div>
+
+      <!-- View 1: Projects Overview -->
+      <section id="view-projects" class="page-view">
+        <div class="view-header">
+          <div class="view-title">
+            <h1>Active Deployments</h1>
+            <p>Your web applications running at global CDN edge with private source code.</p>
+          </div>
+        </div>
+
+        <div class="stats-banner">
+          <div class="stat-box">
+            <div class="stat-title">Active Projects</div>
+            <div class="stat-metric" id="stat-active-count">1</div>
+            <div class="stat-hint">100% Uptime</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-title">Global CDN Bandwidth</div>
+            <div class="stat-metric" id="stat-bandwidth">14.2 GB</div>
+            <div class="stat-hint">Served via jsDelivr & Pages</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-title">Monthly Hosting Costs Saved</div>
+            <div class="stat-metric" id="stat-cost-saved">$48.50</div>
+            <div class="stat-hint">vs Traditional Hosting / AWS</div>
+          </div>
+        </div>
+
+        <div class="projects-grid" id="projects-list">
+          <!-- Populated by JavaScript -->
+        </div>
+      </section>
+
+      <!-- View 2: 1-2-3 New Project Wizard -->
+      <section id="view-wizard" class="page-view" style="display: none;">
+        <div class="view-header">
+          <div class="view-title">
+            <h1>Deploy a Website or API in 60 Seconds</h1>
+            <p>No Git commands. No server configuration. We handle repositories, secrets, and CDN routing automatically.</p>
+          </div>
+        </div>
+
+        <div class="wizard-container">
+          <div class="wizard-steps">
+            <div class="step-indicator active" id="step-ind-1">
+              <span class="step-num">1</span> Choose Template
+            </div>
+            <div class="step-indicator" id="step-ind-2">
+              <span class="step-num">2</span> Compute & Runtime
+            </div>
+            <div class="step-indicator" id="step-ind-3">
+              <span class="step-num">3</span> Name & Launch
+            </div>
+          </div>
+
+          <form id="wizard-form" onsubmit="handleWizardSubmit(event)">
+            <!-- Step 1: Starter Template -->
+            <div id="wizard-step-1">
+              <h3 style="margin-bottom: 1.25rem;">Step 1: Select your project starter</h3>
+              <div class="template-grid" id="template-options">
+                <!-- Injected by JavaScript -->
+              </div>
+              <div style="text-align: right;">
+                <button type="button" class="btn-primary" onclick="goToWizardStep(2)">Next: Choose Compute →</button>
+              </div>
+            </div>
+
+            <!-- Step 2: Compute Runtime -->
+            <div id="wizard-step-2" style="display: none;">
+              <h3 style="margin-bottom: 0.5rem;">Step 2: Choose your Compute & Hosting Plan</h3>
+              <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+                Based on your language, select the optimal 100% free hosting runtime:
+              </p>
+
+              <div class="compute-options">
+                <div class="compute-card selected" data-compute="github_pages_jsdelivr" onclick="selectCompute(this)">
+                  <div class="compute-name">🌐 GitHub Pages + jsDelivr CDN</div>
+                  <div class="compute-cost">$0/month (100% Free Forever)</div>
+                  <div class="compute-desc">Best for HTML, CSS, JavaScript, and static landing pages. Zero bandwidth limits, blazing fast worldwide.</div>
+                </div>
+
+                <div class="compute-card" data-compute="cloudflare_workers" onclick="selectCompute(this)">
+                  <div class="compute-name">⚡ Cloudflare Workers</div>
+                  <div class="compute-cost">$0/month (100,000 req/day Free)</div>
+                  <div class="compute-desc">Best for Node.js REST APIs, webhooks, and backend logic with zero cold starts.</div>
+                </div>
+
+                <div class="compute-card" data-compute="render" onclick="selectCompute(this)">
+                  <div class="compute-name">▲ Vercel / Render Container</div>
+                  <div class="compute-cost">$0/month (Free Tier)</div>
+                  <div class="compute-desc">Best for Python (Flask/FastAPI) or full-stack Node applications with background processes.</div>
+                </div>
+              </div>
+
+              <div style="display: flex; justify-content: space-between;">
+                <button type="button" class="btn-card-action" onclick="goToWizardStep(1)">← Back</button>
+                <button type="button" class="btn-primary" onclick="goToWizardStep(3)">Next: Final Details →</button>
+              </div>
+            </div>
+
+            <!-- Step 3: Project Name & Launch -->
+            <div id="wizard-step-3" style="display: none;">
+              <h3 style="margin-bottom: 1.25rem;">Step 3: Name your project</h3>
+
+              <div class="form-group">
+                <label class="form-label">Website / Project Name</label>
+                <input type="text" id="wizard-project-name" class="form-input" placeholder="e.g. Acme Studio, My Blog, Food API" required>
+                <div class="form-help">We'll automatically set up your private repository, public CDN gateway, and continuous deployment.</div>
+              </div>
+
+              <div class="form-group" style="background: rgba(0,0,0,0.25); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
+                <div style="font-size: 0.9rem; font-weight: 600; color: #fff; margin-bottom: 0.4rem;">🛡️ Privacy & Zero-Cost Guarantee:</div>
+                <ul style="font-size: 0.85rem; color: var(--text-muted); margin-left: 1.2rem; line-height: 1.7;">
+                  <li>Source files & secrets will remain <strong>100% Private</strong> in your hidden repo.</li>
+                  <li>Only built, minified assets will stream to the public CDN gateway.</li>
+                  <li>No billing information or credit cards required.</li>
+                </ul>
+              </div>
+
+              <div style="display: flex; justify-content: space-between; margin-top: 2rem;">
+                <button type="button" class="btn-card-action" onclick="goToWizardStep(2)">← Back</button>
+                <button type="submit" class="btn-primary" id="btn-launch-deploy">
+                  <span>🚀</span> Launch My Website Now
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- View 3: Hostinger-Style Site File Manager & CDN Gateway -->
+      <section id="view-filemanager" class="page-view" style="display: none;">
+        <div class="view-header">
+          <div class="view-title">
+            <h1>Site File Manager & CDN Gateway</h1>
+            <p>Upload, organize, and edit your website files. Run files serve web pages, and Storage files stream via free global CDN.</p>
+          </div>
+          <div>
+            <select id="filemanager-project-select" class="form-input" style="width: 260px;" onchange="handleFileManagerProjectChange()">
+              <!-- Options populated by JS -->
+            </select>
+          </div>
+        </div>
+
+        <!-- Run vs Storage Educational Guide Box -->
+        <div class="filemanager-guide">
+          <div class="guide-box">
+            <div class="guide-icon">⚡</div>
+            <div class="guide-content">
+              <div class="guide-title">
+                <span>Run Files (Web Pages & Scripts)</span>
+                <span class="guide-pill pill-run">src/</span>
+              </div>
+              <div class="guide-desc">
+                Put your <code>index.html</code>, <code>style.css</code>, and JavaScript code here. These files are built and served by GitHub Pages edge with high-speed caching.
+              </div>
+            </div>
+          </div>
+
+          <div class="guide-box">
+            <div class="guide-icon">📦</div>
+            <div class="guide-content">
+              <div class="guide-title">
+                <span>Storage & Downloads (Free Unlimited CDN)</span>
+                <span class="guide-pill pill-storage">assets/ or downloads/</span>
+              </div>
+              <div class="guide-desc">
+                Put your software installers (<code>.exe</code>, <code>.zip</code>), 4K images, videos, and media here. They stream worldwide at multi-gigabit speed via jsDelivr CDN without using server bandwidth.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- File Manager Toolbar -->
+        <div class="filemanager-toolbar">
+          <div class="toolbar-group">
+            <button class="btn-primary" style="padding: 0.45rem 1rem; font-size: 0.85rem;" onclick="triggerFileManagerUpload('src')">
+              <span>⚡</span> Upload Run File (Code)
+            </button>
+            <button class="btn-secondary" style="padding: 0.45rem 1rem; font-size: 0.85rem;" onclick="triggerFileManagerUpload('assets')">
+              <span>📦</span> Upload Storage Asset (CDN)
+            </button>
+            <button class="btn-secondary" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;" onclick="createNewFilePrompt()">
+              <span>+</span> New File
+            </button>
+          </div>
+          <div class="toolbar-group">
+            <a id="btn-filemanager-preview" href="#" target="_blank" class="btn-secondary" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;">
+              <span>👁️</span> Live Preview
+            </a>
+            <a id="btn-filemanager-public" href="#" target="_blank" class="btn-secondary" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;">
+              <span>🌐</span> Production URL
+            </a>
+          </div>
+        </div>
+
+        <!-- Dual Column File Manager Grid -->
+        <div class="filemanager-layout">
+          <!-- Left: Dual Category File Tree -->
+          <div class="filemanager-tree">
+            <!-- Run Files Section -->
+            <div class="tree-section-title">
+              <span>⚡ Run Files (Web Code)</span>
+              <span class="item-badge badge-run" id="badge-run-count">0</span>
+            </div>
+            <div id="tree-run-files">
+              <!-- Injected by JS -->
+            </div>
+
+            <!-- Storage Assets Section -->
+            <div class="tree-section-title" style="margin-top: 1rem;">
+              <span>📦 Storage Assets (CDN)</span>
+              <span class="item-badge badge-storage" id="badge-storage-count">0</span>
+            </div>
+            <div id="tree-storage-files">
+              <!-- Injected by JS -->
+            </div>
+
+            <!-- Drag & Drop Zone -->
+            <div class="dropzone-box" id="filemanager-dropzone">
+              <div style="font-size: 1.5rem; margin-bottom: 0.4rem;">☁️</div>
+              <div style="font-weight: 600; font-size: 0.85rem; color: #fff;">Drop files here to upload</div>
+              <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 0.2rem;">Auto-routes to Run or Storage</div>
+            </div>
+          </div>
+
+          <!-- Right: File Viewer / Code Editor -->
+          <div class="filemanager-content">
+            <div class="content-toolbar">
+              <div class="active-file-indicator">
+                <span id="active-file-icon">📄</span>
+                <span id="active-file-path">Select a file from the tree</span>
+              </div>
+              <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <button id="btn-filemanager-delete" class="btn-secondary" style="padding: 0.35rem 0.8rem; font-size: 0.8rem; color: #f87171; border-color: rgba(239, 68, 68, 0.3); display: none;" onclick="deleteActiveFile()">
+                  <span>🗑️</span> Delete
+                </button>
+                <button id="btn-filemanager-save" class="btn-primary" style="padding: 0.35rem 1rem; font-size: 0.85rem; display: none;" onclick="saveActiveFileManagerFile()">
+                  <span>💾</span> Save & Deploy
+                </button>
+              </div>
+            </div>
+
+            <!-- Code Editor Container -->
+            <div id="filemanager-code-view" style="display: flex; flex-direction: column; height: calc(100% - 48px);">
+              <textarea class="code-textarea" id="filemanager-code-textarea" spellcheck="false" placeholder="Select a code file to edit..."></textarea>
+            </div>
+
+            <!-- Binary / Asset Viewer Container -->
+            <div id="filemanager-asset-view" style="display: none; height: calc(100% - 48px); overflow-y: auto;">
+              <div class="asset-viewer-card">
+                <div class="asset-icon-large" id="asset-view-icon">📦</div>
+                <div class="asset-name-large" id="asset-view-name">filename.ext</div>
+                <div class="asset-size-large" id="asset-view-size">0 KB • Global CDN Asset</div>
+
+                <!-- Image preview if applicable -->
+                <div id="asset-view-img-preview" style="display: none; margin-bottom: 1.5rem;">
+                  <img id="asset-view-img" src="" alt="Preview" style="max-width: 100%; max-height: 240px; border-radius: 8px; border: 1px solid var(--border);">
+                </div>
+
+                <div class="cdn-link-box">
+                  <div class="cdn-label">⚡ Direct jsDelivr Global CDN URL (Zero Bandwidth Cost)</div>
+                  <div class="cdn-url-row">
+                    <input type="text" id="asset-view-cdn-url" class="cdn-url-input" readonly value="">
+                    <button class="btn-primary" id="btn-copy-cdn-url" style="padding: 0.5rem 0.9rem; font-size: 0.8rem; white-space: nowrap;" onclick="copyActiveCdnUrl()">
+                      <span>📋</span> Copy Link
+                    </button>
+                  </div>
+                </div>
+
+                <div style="display: flex; gap: 0.75rem; justify-content: center;">
+                  <a id="asset-view-open-link" href="#" target="_blank" class="btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                    <span>↗️</span> Open in Browser
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hidden file input for uploads -->
+        <input type="file" id="filemanager-file-input" multiple style="display: none;" onchange="handleFileManagerFileInput(event)">
+      </section>
+
+      <!-- View 4: Zero-Cost Engine Info -->
+      <section id="view-architecture" class="page-view" style="display: none;">
+        <div class="view-header">
+          <div class="view-title">
+            <h1>How ZeroHost Works Under the Hood</h1>
+            <p>A dual-repository zero-cost architecture designed for maximum privacy, speed, and zero bills.</p>
+          </div>
+        </div>
+
+        <div class="wizard-container">
+          <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border);">
+              <h3 style="color: var(--accent); margin-bottom: 0.5rem;">🔒 1. Private Source Repository</h3>
+              <p style="color: var(--text-muted); font-size: 0.95rem;">
+                Your original templates, readable CSS/JS code, private API keys, and environment variables stay in a strictly <strong>private</strong> GitHub repository. Nobody on the internet can see your source code.
+              </p>
+            </div>
+
+            <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border);">
+              <h3 style="color: var(--primary); margin-bottom: 0.5rem;">⚙️ 2. Automated GitHub Actions Build</h3>
+              <p style="color: var(--text-muted); font-size: 0.95rem;">
+                Whenever you edit a file or deploy, GitHub Actions automatically minifies your HTML, compresses styles, mangles JS variable names, and copies production-ready files to your public gateway repository.
+              </p>
+            </div>
+
+            <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border);">
+              <h3 style="color: var(--success); margin-bottom: 0.5rem;">🌍 3. Dual Public Gateway & Global CDN</h3>
+              <p style="color: var(--text-muted); font-size: 0.95rem;">
+                Web pages are served seamlessly through <strong>GitHub Pages</strong> (`<username>.github.io/<repo>/`), while heavy assets (JS, CSS, images) are served globally via <strong>jsDelivr CDN</strong> (`cdn.jsdelivr.net`).
+              </p>
+            </div>
+
+            <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border);">
+              <h3 style="color: #f59e0b; margin-bottom: 0.5rem;">⚡ 4. Free Serverless Compute</h3>
+              <p style="color: var(--text-muted); font-size: 0.95rem;">
+                For Node.js and dynamic backends, <strong>Cloudflare Workers</strong> provides 100,000 requests per day for free, talking to your private GitHub repo as a database without needing expensive cloud databases.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- View 5: Savings Calculator -->
+      <section id="view-calculator" class="page-view" style="display: none;">
+        <div class="view-header">
+          <div class="view-title">
+            <h1>Hosting Cost Comparison</h1>
+            <p>See how much you save using ZeroHost compared to traditional hosting providers.</p>
+          </div>
+        </div>
+
+        <div class="wizard-container">
+          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem;">
+            <thead>
+              <tr style="border-bottom: 1px solid var(--border); color: var(--text-dim);">
+                <th style="padding: 1rem 0.5rem;">Resource</th>
+                <th style="padding: 1rem 0.5rem;">AWS / DigitalOcean</th>
+                <th style="padding: 1rem 0.5rem;">Vercel Pro</th>
+                <th style="padding: 1rem 0.5rem; color: var(--accent);">ZeroHost Platform</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td style="padding: 1rem 0.5rem; font-weight: 600;">File Storage</td>
+                <td style="padding: 1rem 0.5rem; color: var(--text-muted);">$5 – $20 / mo</td>
+                <td style="padding: 1rem 0.5rem; color: var(--text-muted);">$20 / mo</td>
+                <td style="padding: 1rem 0.5rem; color: var(--success); font-weight: bold;">$0.00 (GitHub)</td>
+              </tr>
+              <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td style="padding: 1rem 0.5rem; font-weight: 600;">CDN Bandwidth</td>
+                <td style="padding: 1rem 0.5rem; color: var(--text-muted);">$0.09 / GB</td>
+                <td style="padding: 1rem 0.5rem; color: var(--text-muted);">$40+ overage</td>
+                <td style="padding: 1rem 0.5rem; color: var(--success); font-weight: bold;">$0.00 (jsDelivr CDN)</td>
+              </tr>
+              <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td style="padding: 1rem 0.5rem; font-weight: 600;">SSL Certificates</td>
+                <td style="padding: 1rem 0.5rem; color: var(--text-muted);">$10 / yr</td>
+                <td style="padding: 1rem 0.5rem; color: var(--text-muted);">$0</td>
+                <td style="padding: 1rem 0.5rem; color: var(--success); font-weight: bold;">$0.00 (Included)</td>
+              </tr>
+              <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td style="padding: 1rem 0.5rem; font-weight: 600;">Compute (APIs/Workers)</td>
+                <td style="padding: 1rem 0.5rem; color: var(--text-muted);">$10 – $30 / mo</td>
+                <td style="padding: 1rem 0.5rem; color: var(--text-muted);">$20 / seat</td>
+                <td style="padding: 1rem 0.5rem; color: var(--success); font-weight: bold;">$0.00 (CF Workers)</td>
+              </tr>
+              <tr>
+                <td style="padding: 1.25rem 0.5rem; font-weight: 800; font-size: 1.1rem;">Total Cost</td>
+                <td style="padding: 1.25rem 0.5rem; font-weight: 700; color: var(--danger);">$35 – $90 / mo</td>
+                <td style="padding: 1.25rem 0.5rem; font-weight: 700; color: var(--warning);">$40+ / mo</td>
+                <td style="padding: 1.25rem 0.5rem; font-weight: 800; color: var(--success); font-size: 1.3rem;">$0.00 / month</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Terminal Deployment Modal -->
+  <div class="terminal-modal" id="deploy-modal">
+    <div class="terminal-box">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+        </div>
+        <div class="terminal-title" id="terminal-modal-title">zerohost-deploy-orchestrator</div>
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div style="font-size: 0.75rem; color: var(--text-dim);" id="terminal-step-badge">Deploying...</div>
+          <button onclick="closeDeployModal()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; line-height: 1;">×</button>
+        </div>
+      </div>
+      <div class="terminal-logs" id="terminal-log-output">
+        <!-- Logs stream here -->
+      </div>
+      <div class="terminal-success" id="terminal-success-box">
+        <h3 style="color: var(--success); margin-bottom: 0.4rem;">🎉 Your Website is Live!</h3>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">
+          Continuous deployment configured. Every update will auto-stream to the edge CDN.
+        </p>
+        <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+          <a href="#" target="_blank" id="modal-preview-link" class="btn-primary" style="font-size: 0.85rem;">Instant Preview 👁️</a>
+          <a href="#" target="_blank" id="modal-live-link" class="btn-card-action" style="font-size: 0.85rem;">GitHub Pages ↗</a>
+          <button class="btn-card-action" onclick="closeDeployModal()">Go to Dashboard</button>
+        </div>
+      </div>
+      <div class="terminal-error" id="terminal-error-box" style="display: none; background: #261214; border-top: 1px solid rgba(239, 68, 68, 0.3); padding: 1.25rem; text-align: center;">
+        <h3 style="color: var(--danger); margin-bottom: 0.4rem;">❌ Deployment Encountered an Issue</h3>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;" id="terminal-error-desc">
+          Check the logs above for error details.
+        </p>
+        <div style="display: flex; gap: 0.75rem; justify-content: center;">
+          <button class="btn-card-action" onclick="closeDeployModal()">Dismiss</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
+

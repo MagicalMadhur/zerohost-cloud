@@ -1,0 +1,19 @@
+{
+  "name": "zerohost-platform",
+  "version": "1.0.0",
+  "description": "ZeroHost — The $0 Cloud Hosting Platform for Non-Tech Users",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "cookie-session": "^2.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "multer": "^2.5.0",
+    "tweetsodium": "^0.0.4"
+  }
+}
