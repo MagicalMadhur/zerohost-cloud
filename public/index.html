@@ -10,116 +10,81 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="app-container">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="brand-icon">⚡</div>
-        <div class="brand-name">ZeroHost</div>
-        <span class="brand-badge">$0 CLOUD</span>
-      </div>
 
-      <ul class="nav-menu">
-        <li class="nav-item" data-tab="home">
-          <a href="#home"><span class="nav-icon">⚡</span> Home & Overview</a>
-        </li>
-        <li class="nav-item active" data-tab="projects">
-          <a href="#projects"><span class="nav-icon">📁</span> My Deployments</a>
-        </li>
-        <li class="nav-item" data-tab="wizard">
-          <a href="#wizard"><span class="nav-icon">🚀</span> New Deployment</a>
-        </li>
-        <li class="nav-item" data-tab="filemanager">
-          <a href="#filemanager"><span class="nav-icon">📂</span> Site File Manager</a>
-        </li>
-        <li class="nav-item" data-tab="getting-started">
-          <a href="#getting-started"><span class="nav-icon">📖</span> Getting Started</a>
-        </li>
-        <li class="nav-item" data-tab="compare">
-          <a href="#compare"><span class="nav-icon">⚖️</span> Why We Are Superior</a>
-        </li>
-        <li class="nav-item" data-tab="calculator">
-          <a href="#calculator"><span class="nav-icon">💰</span> Savings Calculator</a>
-        </li>
-        <li class="nav-item" data-tab="architecture">
-          <a href="#architecture"><span class="nav-icon">🛡️</span> Zero-Cost Engine</a>
-        </li>
-      </ul>
-
-      <div class="sidebar-cost-box">
-        <div class="cost-label">Monthly Hosting Bill</div>
-        <div class="cost-value">$0.00</div>
-        <div class="cost-sub">🎉 Unlimited storage & CDN</div>
-      </div>
-    </aside>
-
-    <!-- Main Content Area -->
-    <div class="main-wrapper">
-      <!-- Top Header -->
-      <header class="top-header">
-        <div class="header-search">
-          <span>🔍</span>
-          <input type="text" id="project-search-input" placeholder="Search websites or APIs...">
+  <!-- =========================================================================
+       1. PUBLIC MARKETING WEBSITE (Visible to Guests / Unauthenticated Users)
+       ========================================================================= -->
+  <div id="public-view" class="public-landing-container">
+    <!-- Public Sticky Navbar -->
+    <header class="public-nav-wrapper">
+      <div class="public-nav">
+        <div class="brand" style="border: none; padding: 0; cursor: pointer;" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+          <div class="brand-icon">⚡</div>
+          <div class="brand-name">ZeroHost</div>
+          <span class="brand-badge">$0 CLOUD</span>
         </div>
 
-        <div class="header-actions">
-          <div id="auth-container">
-            <!-- Rendered dynamically by app.js: GitHub Login or User Profile Badge -->
-          </div>
-          <button class="btn-primary" onclick="switchTab('wizard')">
-            <span>+</span> Deploy New Site
+        <nav class="public-nav-links">
+          <a href="#features">Features</a>
+          <a href="#comparison">Why We Are Superior</a>
+          <a href="#calculator">Savings Calculator</a>
+          <a href="#docs">Getting Started</a>
+        </nav>
+
+        <div style="display: flex; gap: 0.75rem; align-items: center;" id="public-auth-actions">
+          <button class="btn-github-login" style="padding: 0.5rem 1.1rem; font-size: 0.85rem;" onclick="openSignInModal()">
+            <span>🐙</span> Sign In with GitHub
+          </button>
+          <button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.85rem;" onclick="openSignInModal()">
+            <span>🚀</span> Get Started Free
           </button>
         </div>
-      </header>
+      </div>
+    </header>
 
-      <!-- Global Notification Banner -->
-      <div id="notification-banner" style="display: none; padding: 0.75rem 2rem; background: rgba(99, 102, 241, 0.15); border-bottom: 1px solid rgba(99, 102, 241, 0.3); font-size: 0.85rem; color: #c7d2fe; display: flex; align-items: center; justify-content: space-between;">
-        <span id="notification-text"></span>
-        <button onclick="dismissNotification()" style="background: none; border: none; color: #a5b4fc; font-size: 1.2rem; cursor: pointer;">×</button>
+    <!-- Hero Section -->
+    <section class="hero-marketing">
+      <div class="hero-badge-pill">
+        <span class="hero-pill-dot"></span>
+        <span>Zero-Cost Cloud Infrastructure • 100% Free Forever</span>
       </div>
 
-      <!-- View 0: Commercial Landing Page & Overview -->
-      <section id="view-home" class="page-view" style="display: none;">
-        <!-- Hero Section -->
-        <div class="hero-marketing">
-          <div class="hero-badge-pill">
-            <span class="hero-pill-dot"></span>
-            <span>Zero-Cost Cloud Infrastructure • 100% Free Forever</span>
-          </div>
+      <h1 class="hero-headline">
+        Stop Paying for Web Hosting.<br>
+        <span class="gradient-text-hero">Host Anything for $0. Forever.</span>
+      </h1>
 
-          <h1 class="hero-headline">
-            Stop Paying for Web Hosting.<br>
-            <span class="gradient-text-hero">Host Anything for $0. Forever.</span>
-          </h1>
+      <p class="hero-subtext">
+        ZeroHost gives you the intuitive interface of <strong>Hostinger</strong> combined with the speed of <strong>Vercel</strong>, backed by free enterprise cloud primitives. Dual-repo source privacy, unmetered multi-gigabit CDN bandwidth, and <strong>zero surprise bills</strong>.
+      </p>
 
-          <p class="hero-subtext">
-            ZeroHost gives you the intuitive interface of <strong>Hostinger</strong> combined with the speed of <strong>Vercel</strong>, backed by free enterprise cloud primitives. Dual-repo source code protection, unmetered multi-gigabit CDN bandwidth, and <strong>zero surprise bills</strong>.
-          </p>
+      <div class="hero-actions-row">
+        <button class="btn-primary" style="padding: 0.9rem 2rem; font-size: 1.05rem;" onclick="openSignInModal()">
+          <span>🚀</span> Start Hosting for Free
+        </button>
+        <a href="#comparison" class="btn-secondary" style="padding: 0.9rem 2rem; font-size: 1.05rem; text-decoration: none;">
+          <span>⚖️</span> Compare with Hostinger & Vercel
+        </a>
+        <a href="#calculator" class="btn-secondary" style="padding: 0.9rem 1.8rem; font-size: 1.05rem; text-decoration: none;">
+          <span>💰</span> Calculate Your Savings
+        </a>
+      </div>
 
-          <div class="hero-actions-row">
-            <button class="btn-primary" style="padding: 0.85rem 1.8rem; font-size: 1rem;" onclick="switchTab('wizard')">
-              <span>🚀</span> Deploy Your Website in 60s
-            </button>
-            <button class="btn-secondary" style="padding: 0.85rem 1.8rem; font-size: 1rem;" onclick="switchTab('compare')">
-              <span>⚖️</span> Compare with Hostinger & Vercel
-            </button>
-            <button class="btn-secondary" style="padding: 0.85rem 1.6rem; font-size: 1rem;" onclick="switchTab('getting-started')">
-              <span>📖</span> Getting Started Guide
-            </button>
-          </div>
+      <div class="hero-trust-bar">
+        <div class="trust-item"><span>🌍</span> 800+ Edge CDN Locations</div>
+        <div class="trust-item"><span>⚡</span> jsDelivr & Pages Multi-Gigabit Cache</div>
+        <div class="trust-item"><span>🔒</span> 100% Private Source Code</div>
+        <div class="trust-item"><span>💳</span> No Credit Card Required</div>
+      </div>
+    </section>
 
-          <div class="hero-trust-bar">
-            <div class="trust-item"><span>🌍</span> 800+ Edge CDN Locations</div>
-            <div class="trust-item"><span>⚡</span> jsDelivr & Pages Multi-Gigabit Cache</div>
-            <div class="trust-item"><span>🔒</span> 100% Private Source Code</div>
-            <div class="trust-item"><span>💳</span> No Credit Card Required</div>
-          </div>
-        </div>
-
-        <!-- Core Feature Grid -->
-        <div class="view-header" style="text-align: center; margin-bottom: 2.5rem;">
+    <!-- Public Content Body -->
+    <div class="public-container">
+      <!-- Section 1: Features -->
+      <section class="public-section" id="features">
+        <div class="view-header" style="text-align: center; margin-bottom: 3rem;">
           <div class="view-title" style="margin: 0 auto;">
-            <h2 style="font-size: 2.2rem; font-weight: 800; color: #fff;">Why Modern Developers & Non-Tech Users Choose ZeroHost</h2>
+            <h2 style="font-size: 2.2rem; font-weight: 800; color: #fff;">Built for Creators, Developers & Non-Tech Users</h2>
             <p style="font-size: 1.05rem;">Engineered from the ground up to eliminate hosting bills without sacrificing power or speed.</p>
           </div>
         </div>
@@ -163,7 +128,360 @@
         </div>
       </section>
 
-      <!-- View 1: Projects Overview -->
+      <!-- Section 2: Why We Are Superior (The Comparison Matrix) -->
+      <section class="public-section" id="comparison">
+        <div class="view-header" style="text-align: center; margin-bottom: 2.5rem;">
+          <div class="view-title" style="margin: 0 auto;">
+            <h2 style="font-size: 2.2rem; font-weight: 800; color: #fff;">Why ZeroHost is Architecturally Superior</h2>
+            <p style="font-size: 1.05rem;">A rigorous, head-to-head comparison against traditional shared hosting, serverless platforms, and cloud providers.</p>
+          </div>
+        </div>
+
+        <div class="compare-container-pro">
+          <table class="compare-pro-table">
+            <thead>
+              <tr>
+                <th style="width: 25%;">Feature / Capability</th>
+                <th class="col-zerohost" style="width: 25%;">⚡ ZeroHost Cloud</th>
+                <th style="width: 16%;">Hostinger / GoDaddy</th>
+                <th style="width: 17%;">Vercel (Free / Pro)</th>
+                <th style="width: 17%;">AWS / DigitalOcean</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Monthly Base Cost</strong></td>
+                <td class="col-zerohost"><strong style="color: var(--success); font-size: 1.1rem;">$0.00 Forever</strong></td>
+                <td>$3.99/mo (jumps to $11.99 on renewal)</td>
+                <td>$0 (Hobby) / $20.00/mo (Pro)</td>
+                <td>$15 – $60+/mo (EC2 + Bandwidth)</td>
+              </tr>
+              <tr>
+                <td><strong>Global CDN Bandwidth</strong></td>
+                <td class="col-zerohost"><strong style="color: var(--accent);">Unmetered (jsDelivr Edge)</strong></td>
+                <td>100 GB – Capped by CPU limits</td>
+                <td>100 GB cap ($40/100GB overage)</td>
+                <td>$0.09 per GB (Billed monthly)</td>
+              </tr>
+              <tr>
+                <td><strong>Surprise Billing Risk</strong></td>
+                <td class="col-zerohost"><span class="badge-check">✓</span> <strong>Zero ($0 Hard Floor)</strong></td>
+                <td>Low (Account gets suspended)</td>
+                <td><span class="badge-cross">✕</span> <strong>High (Known $1,000+ bills)</strong></td>
+                <td><span class="badge-cross">✕</span> <strong>Very High (Runaway DDoS)</strong></td>
+              </tr>
+              <tr>
+                <td><strong>Max File Upload Size</strong></td>
+                <td class="col-zerohost"><strong style="color: var(--success);">Up to 2 GB per file</strong></td>
+                <td>50 MB – 100 MB PHP limit</td>
+                <td><span class="badge-cross">✕</span> <strong>4.5 MB Serverless Limit</strong></td>
+                <td>5 TB (S3, billed per GB)</td>
+              </tr>
+              <tr>
+                <td><strong>Source Code Protection</strong></td>
+                <td class="col-zerohost"><span class="badge-check">✓</span> <strong>100% Private Hidden Repo</strong></td>
+                <td>Server files (Hidden)</td>
+                <td>Private (Limited seats on free)</td>
+                <td>Private (Complex IAM setup)</td>
+              </tr>
+              <tr>
+                <td><strong>In-Browser Web Studio</strong></td>
+                <td class="col-zerohost"><span class="badge-check">✓</span> <strong>Dual Run/Storage Studio</strong></td>
+                <td>Old cPanel File Manager</td>
+                <td><span class="badge-cross">✕</span> None (Git CLI required)</td>
+                <td><span class="badge-cross">✕</span> None (SSH / SFTP only)</td>
+              </tr>
+              <tr>
+                <td><strong>Software Binaries (.exe / .zip)</strong></td>
+                <td class="col-zerohost"><span class="badge-check">✓</span> <strong>Native jsDelivr CDN Gateway</strong></td>
+                <td>Billed on storage & bandwidth</td>
+                <td><span class="badge-cross">✕</span> Strictly Prohibited / Limited</td>
+                <td>Billed on S3 egress ($0.09/GB)</td>
+              </tr>
+              <tr>
+                <td><strong>Technical Skill Required</strong></td>
+                <td class="col-zerohost"><span class="badge-check">✓</span> <strong>Zero (100% GUI / 1-Click)</strong></td>
+                <td>Low (cPanel)</td>
+                <td>Intermediate (Git, CLI, Node)</td>
+                <td>Advanced (DevOps, Linux, IAM)</td>
+              </tr>
+              <tr>
+                <td><strong>Commercial Projects Allowed</strong></td>
+                <td class="col-zerohost"><span class="badge-check">✓</span> <strong>100% Allowed ($0)</strong></td>
+                <td>Allowed</td>
+                <td><span class="badge-cross">✕</span> Prohibited on Free Hobby Tier</td>
+                <td>Allowed</td>
+              </tr>
+              <tr>
+                <td><strong>Automatic Free SSL</strong></td>
+                <td class="col-zerohost"><span class="badge-check">✓</span> <strong>Included Forever</strong></td>
+                <td>Free Year 1 (Charged on renewal)</td>
+                <td>Included</td>
+                <td>Complex ACM / Certbot setup</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Deep Dives -->
+        <div class="features-container-pro">
+          <div class="feature-box-pro">
+            <h3 style="color: #f87171;">⚠️ The Vercel Bandwidth & Payload Trap</h3>
+            <p>Vercel's free tier has a <strong>4.5 MB request body limit</strong> and a <strong>100 GB monthly bandwidth limit</strong>. If you distribute software installers or host media, you will exceed this in days. On Vercel Pro, bandwidth overage is <strong>$40 per 100 GB</strong>. A viral launch can easily hit you with a surprise $1,000+ bill.</p>
+          </div>
+
+          <div class="feature-box-pro">
+            <h3 style="color: #fbbf24;">⚠️ The Hostinger Renewal Price Hike</h3>
+            <p>Shared hosts like Hostinger advertise low intro prices like $2.99 or $3.99/mo, but lock you into 4-year upfront commitments. When renewal hits, prices jump by <strong>300% to 400% ($12 to $16/mo)</strong>, and your site is throttled by strict CPU and inode limits.</p>
+          </div>
+
+          <div class="feature-box-pro">
+            <h3 style="color: var(--success);">🛡️ How ZeroHost Solves This Forever</h3>
+            <p>ZeroHost separates Compute from Storage. Heavy files stream through jsDelivr (backed by Cloudflare and Fastly multi-gigabit edge), while web pages run on GitHub Pages. There are <strong>no bandwidth bills, no renewal traps, and no credit card on file</strong>.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: Interactive Savings Calculator -->
+      <section class="public-section" id="calculator">
+        <div class="view-header" style="text-align: center; margin-bottom: 2.5rem;">
+          <div class="view-title" style="margin: 0 auto;">
+            <h2 style="font-size: 2.2rem; font-weight: 800; color: #fff;">Interactive Hosting Cost Calculator</h2>
+            <p style="font-size: 1.05rem;">Drag the sliders to calculate your exact annual savings vs. Hostinger, Vercel, and AWS.</p>
+          </div>
+        </div>
+
+        <div class="calc-card-pro">
+          <div class="calc-grid">
+            <!-- Left: Sliders -->
+            <div>
+              <div class="slider-group">
+                <div class="slider-header">
+                  <span class="slider-label">Number of Hosted Websites</span>
+                  <span class="slider-val" id="calc-val-sites">3 sites</span>
+                </div>
+                <input type="range" class="calc-slider" id="calc-slider-sites" min="1" max="25" value="3" oninput="updateCalculator()">
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-dim); margin-top: 0.35rem;">
+                  <span>1 site</span>
+                  <span>12 sites</span>
+                  <span>25 sites</span>
+                </div>
+              </div>
+
+              <div class="slider-group">
+                <div class="slider-header">
+                  <span class="slider-label">Monthly Global CDN Bandwidth</span>
+                  <span class="slider-val" id="calc-val-bandwidth">250 GB</span>
+                </div>
+                <input type="range" class="calc-slider" id="calc-slider-bandwidth" min="20" max="2000" step="10" value="250" oninput="updateCalculator()">
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-dim); margin-top: 0.35rem;">
+                  <span>20 GB</span>
+                  <span>1,000 GB (1 TB)</span>
+                  <span>2,000 GB (2 TB)</span>
+                </div>
+              </div>
+
+              <div class="slider-group" style="margin-bottom: 0;">
+                <div class="slider-header">
+                  <span class="slider-label">Storage / Installers per Site</span>
+                  <span class="slider-val" id="calc-val-storage">500 MB</span>
+                </div>
+                <input type="range" class="calc-slider" id="calc-slider-storage" min="100" max="10000" step="100" value="500" oninput="updateCalculator()">
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-dim); margin-top: 0.35rem;">
+                  <span>100 MB</span>
+                  <span>5 GB</span>
+                  <span>10 GB</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Breakdown -->
+            <div class="calc-results-box">
+              <div>
+                <h4 style="font-size: 1.1rem; color: #fff; margin-bottom: 1.25rem;">Estimated Annual Hosting Bills</h4>
+                
+                <div class="provider-row">
+                  <span class="provider-name">Traditional Shared Hosting (Hostinger)</span>
+                  <span class="provider-cost cost-danger" id="calc-cost-hostinger">$254 / yr</span>
+                </div>
+
+                <div class="provider-row">
+                  <span class="provider-name">Vercel Pro (Seats + Bandwidth Overages)</span>
+                  <span class="provider-cost cost-danger" id="calc-cost-vercel">$480 / yr</span>
+                </div>
+
+                <div class="provider-row">
+                  <span class="provider-name">AWS Cloud (EC2 + S3 + CloudFront Data)</span>
+                  <span class="provider-cost cost-danger" id="calc-cost-aws">$395 / yr</span>
+                </div>
+
+                <div class="provider-row" style="border-bottom: none; padding-top: 1rem;">
+                  <span class="provider-name" style="color: #fff; font-weight: 700;">⚡ ZeroHost Cloud Platform</span>
+                  <span class="provider-cost cost-success">$0.00 / yr</span>
+                </div>
+              </div>
+
+              <div class="savings-highlight">
+                <div class="savings-sub">YOUR ESTIMATED ANNUAL SAVINGS</div>
+                <div class="savings-val" id="calc-total-saved">$376.00</div>
+                <div class="savings-sub">100% Free Forever • Zero Billing Risk</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: Getting Started Docs -->
+      <section class="public-section" id="docs" style="border-bottom: none;">
+        <div class="view-header" style="text-align: center; margin-bottom: 2.5rem;">
+          <div class="view-title" style="margin: 0 auto;">
+            <h2 style="font-size: 2.2rem; font-weight: 800; color: #fff;">Getting Started & Developer Guide</h2>
+            <p style="font-size: 1.05rem;">Everything you need to know to launch static websites, software download portals, or APIs with $0 hosting costs.</p>
+          </div>
+        </div>
+
+        <div class="docs-container">
+          <div class="doc-section">
+            <h2><span>🚀</span> 1. Deploying in 60 Seconds (No Git Required)</h2>
+            <p>ZeroHost was built specifically so non-technical creators never have to struggle with command-line tools, SSH keys, or terminal commands.</p>
+            <div class="doc-callout">
+              <strong>Quick Flow:</strong> Sign In with GitHub → Choose a starter template → Name your project → Click <strong>Launch My Website Now</strong>.
+            </div>
+            <p>Behind the scenes, ZeroHost talks to GitHub's REST API, generates two linked repositories, configures GitHub Actions continuous deployment, injects your deployment tokens, and turns on global CDN edge distribution automatically.</p>
+          </div>
+
+          <div class="doc-section">
+            <h2><span>⚡</span> 2. Run Files vs. Storage Files (The Core Architecture)</h2>
+            <p>To eliminate expensive bandwidth fees, ZeroHost cleanly divides your project into two folders inside the Site File Manager:</p>
+            <div class="doc-code-block">
+Project Root Structure:
+├── src/                          <-- ⚡ RUN FILES (HTML, CSS, JavaScript)
+│   ├── index.html                (Served via GitHub Pages with edge caching)
+│   ├── css/style.css
+│   └── js/main.js
+└── assets/                       <-- 📦 STORAGE ASSETS (Installers, 4K Images, Videos)
+    ├── Velocity_Setup.exe        (Streamed worldwide via jsDelivr CDN at multi-gigabit speeds)
+    ├── Extension.zip             ($0 bandwidth fees regardless of millions of downloads)
+    └── screenshots/
+            </div>
+            <p>You can edit files directly in your browser with our built-in <strong>In-Browser Web Studio</strong>. When you hit <strong>Save & Deploy</strong>, your changes are automatically committed to your private repository and synced to the global edge.</p>
+          </div>
+
+          <div class="doc-section">
+            <h2><span>📦</span> 3. Software Distribution & Heavy Downloads (Velocity Blueprint)</h2>
+            <p>If you're distributing desktop apps, games, or media (like Velocity Download Manager with 48MB installers):</p>
+            <ul style="margin-left: 1.5rem; margin-bottom: 1.25rem; color: var(--text-muted); line-height: 1.8;">
+              <li>Upload your <code>.exe</code>, <code>.zip</code>, or <code>.dmg</code> file into the <code>assets/</code> folder via the drag & drop zone.</li>
+              <li>The File Manager immediately generates an ultra-fast <strong>jsDelivr Global CDN URL</strong>.</li>
+              <li>Click <strong>📋 Copy Link</strong> and paste it directly into your website's download button.</li>
+              <li>Even if 50,000 users download your 50MB file (2.5 TB of traffic), your bill is <strong>$0.00</strong>.</li>
+            </ul>
+          </div>
+
+          <div class="doc-section">
+            <h2><span>🌐</span> 4. Custom Domains & Free Automatic SSL</h2>
+            <p>Every deployment receives a free <code>https://&lt;username&gt;.github.io/&lt;repo&gt;/</code> URL. To connect your own custom domain (e.g. <code>www.mycoolapp.com</code>):</p>
+            <div class="doc-code-block">
+DNS Setup for Custom Domains:
+1. In your domain registrar (GoDaddy, Namecheap, Cloudflare):
+   - Add a CNAME record: Name = "www", Value = "&lt;your-username&gt;.github.io"
+2. In ZeroHost File Manager:
+   - Create a file named "CNAME" in the root with your domain: "www.mycoolapp.com"
+3. GitHub automatically provisions a Let's Encrypt SSL certificate for free.
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Public Footer -->
+    <footer class="public-footer">
+      <div class="public-container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 2rem;">
+        <div>
+          <div class="brand" style="border: none; padding: 0;">
+            <div class="brand-icon">⚡</div>
+            <div class="brand-name">ZeroHost</div>
+            <span class="brand-badge">$0 CLOUD</span>
+          </div>
+          <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 0.5rem;">
+            The zero-cost cloud hosting platform engineered for creators and developers.
+          </p>
+        </div>
+        <div style="display: flex; gap: 1.5rem; font-size: 0.9rem; color: var(--text-muted);">
+          <a href="#features" style="color: inherit; text-decoration: none;">Features</a>
+          <a href="#comparison" style="color: inherit; text-decoration: none;">Comparison</a>
+          <a href="#calculator" style="color: inherit; text-decoration: none;">Calculator</a>
+          <a href="#docs" style="color: inherit; text-decoration: none;">Docs</a>
+          <a href="#" onclick="openSignInModal(); return false;" style="color: var(--accent); text-decoration: none; font-weight: 700;">Sign In</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+
+  <!-- =========================================================================
+       2. PROTECTED APP CONSOLE / DASHBOARD (Only Unlocked When Logged In!)
+       ========================================================================= -->
+  <div id="app-view" class="app-container" style="display: none;">
+    <!-- Console Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">⚡</div>
+        <div class="brand-name">ZeroHost</div>
+        <span class="brand-badge">CONSOLE</span>
+      </div>
+
+      <ul class="nav-menu">
+        <li class="nav-item active" data-tab="projects">
+          <a href="#projects"><span class="nav-icon">📁</span> My Deployments</a>
+        </li>
+        <li class="nav-item" data-tab="wizard">
+          <a href="#wizard"><span class="nav-icon">🚀</span> New Deployment</a>
+        </li>
+        <li class="nav-item" data-tab="filemanager">
+          <a href="#filemanager"><span class="nav-icon">📂</span> Site File Manager</a>
+        </li>
+        <li class="nav-item" data-tab="architecture">
+          <a href="#architecture"><span class="nav-icon">🛡️</span> Zero-Cost Engine</a>
+        </li>
+        <li class="nav-item" onclick="showPublicSite()">
+          <a href="#public"><span class="nav-icon">🌐</span> Public Website</a>
+        </li>
+      </ul>
+
+      <div class="sidebar-cost-box">
+        <div class="cost-label">Monthly Hosting Bill</div>
+        <div class="cost-value">$0.00</div>
+        <div class="cost-sub">🎉 Unlimited storage & CDN</div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-wrapper">
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="header-search">
+          <span>🔍</span>
+          <input type="text" id="project-search-input" placeholder="Search your websites or APIs...">
+        </div>
+
+        <div class="header-actions">
+          <div id="auth-container">
+            <!-- User Profile Badge & Logout -->
+          </div>
+          <button class="btn-primary" onclick="switchTab('wizard')">
+            <span>+</span> Deploy New Site
+          </button>
+        </div>
+      </header>
+
+      <!-- Global Notification Banner -->
+      <div id="notification-banner" style="display: none; padding: 0.75rem 2rem; background: rgba(99, 102, 241, 0.15); border-bottom: 1px solid rgba(99, 102, 241, 0.3); font-size: 0.85rem; color: #c7d2fe; display: flex; align-items: center; justify-content: space-between;">
+        <span id="notification-text"></span>
+        <button onclick="dismissNotification()" style="background: none; border: none; color: #a5b4fc; font-size: 1.2rem; cursor: pointer;">×</button>
+      </div>
+
+      <!-- View 1: Projects Overview (Protected) -->
       <section id="view-projects" class="page-view">
         <div class="view-header">
           <div class="view-title">
@@ -195,7 +513,7 @@
         </div>
       </section>
 
-      <!-- View 2: 1-2-3 New Project Wizard -->
+      <!-- View 2: 1-2-3 New Project Wizard (Protected) -->
       <section id="view-wizard" class="page-view" style="display: none;">
         <div class="view-header">
           <div class="view-title">
@@ -205,76 +523,94 @@
         </div>
 
         <div class="wizard-container">
-          <div class="wizard-steps">
-            <div class="step-indicator active" id="step-ind-1">
+          <div class="step-indicator">
+            <div class="step-badge active" id="step-ind-1">
               <span class="step-num">1</span> Choose Template
             </div>
-            <div class="step-indicator" id="step-ind-2">
+            <div class="step-badge" id="step-ind-2">
               <span class="step-num">2</span> Compute & Runtime
             </div>
-            <div class="step-indicator" id="step-ind-3">
+            <div class="step-badge" id="step-ind-3">
               <span class="step-num">3</span> Name & Launch
             </div>
           </div>
 
           <form id="wizard-form" onsubmit="handleWizardSubmit(event)">
-            <!-- Step 1: Starter Template -->
-            <div id="wizard-step-1">
-              <h3 style="margin-bottom: 1.25rem;">Step 1: Select your project starter</h3>
-              <div class="template-grid" id="template-options">
-                <!-- Injected by JavaScript -->
-              </div>
-              <div style="text-align: right;">
-                <button type="button" class="btn-primary" onclick="goToWizardStep(2)">Next: Choose Compute →</button>
-              </div>
-            </div>
-
-            <!-- Step 2: Compute Runtime -->
-            <div id="wizard-step-2" style="display: none;">
-              <h3 style="margin-bottom: 0.5rem;">Step 2: Choose your Compute & Hosting Plan</h3>
+            <!-- Step 1: Choose Template -->
+            <div class="wizard-step" id="wizard-step-1">
+              <h3 style="margin-bottom: 0.5rem;">Step 1: Select your project starter</h3>
               <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
-                Based on your language, select the optimal 100% free hosting runtime:
+                Each template generates automated private-to-public dual-repo deployment workflows.
               </p>
-
-              <div class="compute-options">
-                <div class="compute-card selected" data-compute="github_pages_jsdelivr" onclick="selectCompute(this)">
-                  <div class="compute-name">🌐 GitHub Pages + jsDelivr CDN</div>
-                  <div class="compute-cost">$0/month (100% Free Forever)</div>
-                  <div class="compute-desc">Best for HTML, CSS, JavaScript, and static landing pages. Zero bandwidth limits, blazing fast worldwide.</div>
-                </div>
-
-                <div class="compute-card" data-compute="cloudflare_workers" onclick="selectCompute(this)">
-                  <div class="compute-name">⚡ Cloudflare Workers</div>
-                  <div class="compute-cost">$0/month (100,000 req/day Free)</div>
-                  <div class="compute-desc">Best for Node.js REST APIs, webhooks, and backend logic with zero cold starts.</div>
-                </div>
-
-                <div class="compute-card" data-compute="render" onclick="selectCompute(this)">
-                  <div class="compute-name">▲ Vercel / Render Container</div>
-                  <div class="compute-cost">$0/month (Free Tier)</div>
-                  <div class="compute-desc">Best for Python (Flask/FastAPI) or full-stack Node applications with background processes.</div>
-                </div>
+              <div class="templates-grid" id="templates-list">
+                <!-- Injected by JS -->
               </div>
-
-              <div style="display: flex; justify-content: space-between;">
-                <button type="button" class="btn-card-action" onclick="goToWizardStep(1)">← Back</button>
-                <button type="button" class="btn-primary" onclick="goToWizardStep(3)">Next: Final Details →</button>
+              <div style="display: flex; justify-content: flex-end; margin-top: 2rem;">
+                <button type="button" class="btn-primary" onclick="goToWizardStep(2)">
+                  Continue to Compute & Runtime →
+                </button>
               </div>
             </div>
 
-            <!-- Step 3: Project Name & Launch -->
-            <div id="wizard-step-3" style="display: none;">
-              <h3 style="margin-bottom: 1.25rem;">Step 3: Name your project</h3>
+            <!-- Step 2: Choose Compute Provider -->
+            <div class="wizard-step" id="wizard-step-2" style="display: none;">
+              <h3 style="margin-bottom: 0.5rem;">Step 2: Choose your zero-cost compute provider</h3>
+              <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+                ZeroHost recommends the best free compute engine based on your selected language.
+              </p>
+              <div class="compute-options">
+                <label class="compute-card selected" onclick="selectCompute('github_pages_jsdelivr')">
+                  <input type="radio" name="compute_provider" value="github_pages_jsdelivr" checked style="display: none;">
+                  <div class="compute-header">
+                    <span class="compute-title">⚡ GitHub Pages + jsDelivr CDN</span>
+                    <span class="compute-badge">$0 / mo</span>
+                  </div>
+                  <div class="compute-desc">
+                    Perfect for static sites, landing pages, and frontend SPAs. Unlimited global CDN bandwidth and automated SSL.
+                  </div>
+                </label>
 
-              <div class="form-group">
-                <label class="form-label">Website / Project Name</label>
-                <input type="text" id="wizard-project-name" class="form-input" placeholder="e.g. Acme Studio, My Blog, Food API" required>
-                <div class="form-help">We'll automatically set up your private repository, public CDN gateway, and continuous deployment.</div>
+                <label class="compute-card" onclick="selectCompute('cloudflare_workers')">
+                  <input type="radio" name="compute_provider" value="cloudflare_workers" style="display: none;">
+                  <div class="compute-header">
+                    <span class="compute-title">☁️ Cloudflare Workers (Edge Functions)</span>
+                    <span class="compute-badge">$0 / mo</span>
+                  </div>
+                  <div class="compute-desc">
+                    Ideal for dynamic Node.js, REST APIs, or auth middleware. 100,000 free edge requests per day worldwide.
+                  </div>
+                </label>
+
+                <label class="compute-card" onclick="selectCompute('vercel_serverless')">
+                  <input type="radio" name="compute_provider" value="vercel_serverless" style="display: none;">
+                  <div class="compute-header">
+                    <span class="compute-title">▲ Vercel Serverless (Python / Node)</span>
+                    <span class="compute-badge">$0 / mo</span>
+                  </div>
+                  <div class="compute-desc">
+                    Great for Python (Flask/FastAPI) or Node microservices. Storage is separated to jsDelivr to prevent payload traps.
+                  </div>
+                </label>
               </div>
 
-              <div class="form-group" style="background: rgba(0,0,0,0.25); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
-                <div style="font-size: 0.9rem; font-weight: 600; color: #fff; margin-bottom: 0.4rem;">🛡️ Privacy & Zero-Cost Guarantee:</div>
-                <ul style="font-size: 0.85rem; color: var(--text-muted); margin-left: 1.2rem; line-height: 1.7;">
+              <div style="display: flex; justify-content: space-between; margin-top: 2rem;">
+                <button type="button" class="btn-card-action" onclick="goToWizardStep(1)">← Back</button>
+                <button type="button" class="btn-primary" onclick="goToWizardStep(3)">Continue to Naming →</button>
+              </div>
+            </div>
+
+            <!-- Step 3: Project Name -->
+            <div class="wizard-step" id="wizard-step-3" style="display: none;">
+              <h3 style="margin-bottom: 0.5rem;">Step 3: Name your project</h3>
+              <div class="form-group" style="margin-top: 1.5rem;">
+                <label class="form-label" for="wizard-project-name">Website / Project Name</label>
+                <input type="text" id="wizard-project-name" class="form-input" placeholder="e.g. Velocity Download Manager, My Blog" required>
+                <span class="form-hint">We'll automatically set up your private repository, public CDN gateway, and continuous deployment.</span>
+              </div>
+
+              <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 12px; padding: 1.25rem; margin-top: 1.5rem;">
+                <h4 style="color: var(--accent); font-size: 0.95rem; margin-bottom: 0.5rem;">🛡️ Privacy & Zero-Cost Guarantee:</h4>
+                <ul style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.7; margin-left: 1.25rem;">
                   <li>Source files & secrets will remain <strong>100% Private</strong> in your hidden repo.</li>
                   <li>Only built, minified assets will stream to the public CDN gateway.</li>
                   <li>No billing information or credit cards required.</li>
@@ -292,7 +628,7 @@
         </div>
       </section>
 
-      <!-- View 3: Hostinger-Style Site File Manager & CDN Gateway -->
+      <!-- View 3: Hostinger-Style Site File Manager & CDN Gateway (Protected) -->
       <section id="view-filemanager" class="page-view" style="display: none;">
         <div class="view-header">
           <div class="view-title">
@@ -417,7 +753,6 @@
                 <div class="asset-name-large" id="asset-view-name">filename.ext</div>
                 <div class="asset-size-large" id="asset-view-size">0 KB • Global CDN Asset</div>
 
-                <!-- Image preview if applicable -->
                 <div id="asset-view-img-preview" style="display: none; margin-bottom: 1.5rem;">
                   <img id="asset-view-img" src="" alt="Preview" style="max-width: 100%; max-height: 240px; border-radius: 8px; border: 1px solid var(--border);">
                 </div>
@@ -442,11 +777,10 @@
           </div>
         </div>
 
-        <!-- Hidden file input for uploads -->
         <input type="file" id="filemanager-file-input" multiple style="display: none;" onchange="handleFileManagerFileInput(event)">
       </section>
 
-      <!-- View 4: Zero-Cost Engine Info -->
+      <!-- View 4: Zero-Cost Engine Info (Protected) -->
       <section id="view-architecture" class="page-view" style="display: none;">
         <div class="view-header">
           <div class="view-title">
@@ -474,7 +808,7 @@
             <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border);">
               <h3 style="color: var(--success); margin-bottom: 0.5rem;">🌍 3. Dual Public Gateway & Global CDN</h3>
               <p style="color: var(--text-muted); font-size: 0.95rem;">
-                Web pages are served seamlessly through <strong>GitHub Pages</strong> (`<username>.github.io/<repo>/`), while heavy assets (JS, CSS, images) are served globally via <strong>jsDelivr CDN</strong> (`cdn.jsdelivr.net`).
+                Web pages are served seamlessly through <strong>GitHub Pages</strong> (`&lt;username&gt;.github.io/&lt;repo&gt;/`), while heavy assets (JS, CSS, images) are served globally via <strong>jsDelivr CDN</strong> (`cdn.jsdelivr.net`).
               </p>
             </div>
 
@@ -483,275 +817,6 @@
               <p style="color: var(--text-muted); font-size: 0.95rem;">
                 For Node.js and dynamic backends, <strong>Cloudflare Workers</strong> provides 100,000 requests per day for free, talking to your private GitHub repo as a database without needing expensive cloud databases.
               </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- View 5: Getting Started & Developer Docs -->
-      <section id="view-getting-started" class="page-view" style="display: none;">
-        <div class="view-header">
-          <div class="view-title">
-            <h1>Getting Started with ZeroHost</h1>
-            <p>Everything you need to know to launch static websites, software download portals, or APIs with $0 hosting costs.</p>
-          </div>
-        </div>
-
-        <div class="docs-container">
-          <!-- Step 1 -->
-          <div class="doc-section">
-            <h2><span>🚀</span> 1. Deploying in 60 Seconds (No Git Required)</h2>
-            <p>ZeroHost was built specifically so non-technical creators never have to struggle with command-line tools, SSH keys, or terminal commands.</p>
-            <div class="doc-callout">
-              <strong>Quick Flow:</strong> Go to <strong>New Deployment</strong> → Choose a starter template → Name your project → Click <strong>Launch My Website Now</strong>.
-            </div>
-            <p>Behind the scenes, ZeroHost talks to GitHub's REST API, generates two linked repositories, configures GitHub Actions continuous deployment, injects your deployment tokens, and turns on global CDN edge distribution automatically.</p>
-          </div>
-
-          <!-- Step 2 -->
-          <div class="doc-section">
-            <h2><span>⚡</span> 2. Run Files vs. Storage Files (The Core Architecture)</h2>
-            <p>To eliminate expensive bandwidth fees, ZeroHost cleanly divides your project into two folders inside the Site File Manager:</p>
-            <div class="doc-code-block">
-Project Root Structure:
-├── src/                          <-- ⚡ RUN FILES (HTML, CSS, JavaScript)
-│   ├── index.html                (Served via GitHub Pages with edge caching)
-│   ├── css/style.css
-│   └── js/main.js
-└── assets/                       <-- 📦 STORAGE ASSETS (Installers, 4K Images, Videos)
-    ├── Velocity_Setup.exe        (Streamed worldwide via jsDelivr CDN at multi-gigabit speeds)
-    ├── Extension.zip             ($0 bandwidth fees regardless of millions of downloads)
-    └── screenshots/
-            </div>
-            <p>You can edit files directly in your browser with our built-in <strong>In-Browser Web Studio</strong>. When you hit <strong>Save & Deploy</strong>, your changes are automatically committed to your private repository and synced to the global edge.</p>
-          </div>
-
-          <!-- Step 3 -->
-          <div class="doc-section">
-            <h2><span>📦</span> 3. Software Distribution & Heavy Downloads (Velocity Blueprint)</h2>
-            <p>If you're distributing desktop apps, games, or media (like Velocity Download Manager with 48MB installers):</p>
-            <ul style="margin-left: 1.5rem; margin-bottom: 1.25rem; color: var(--text-muted); line-height: 1.8;">
-              <li>Upload your <code>.exe</code>, <code>.zip</code>, or <code>.dmg</code> file into the <code>assets/</code> folder via the drag & drop zone.</li>
-              <li>The File Manager immediately generates an ultra-fast <strong>jsDelivr Global CDN URL</strong>.</li>
-              <li>Click <strong>📋 Copy Link</strong> and paste it directly into your website's download button.</li>
-              <li>Even if 50,000 users download your 50MB file (2.5 TB of traffic), your bill is <strong>$0.00</strong>.</li>
-            </ul>
-          </div>
-
-          <!-- Step 4 -->
-          <div class="doc-section">
-            <h2><span>🌐</span> 4. Custom Domains & Free Automatic SSL</h2>
-            <p>Every deployment receives a free <code>https://&lt;username&gt;.github.io/&lt;repo&gt;/</code> URL. To connect your own custom domain (e.g. <code>www.mycoolapp.com</code>):</p>
-            <div class="doc-code-block">
-DNS Setup for Custom Domains:
-1. In your domain registrar (GoDaddy, Namecheap, Cloudflare):
-   - Add a CNAME record: Name = "www", Value = "&lt;your-username&gt;.github.io"
-2. In ZeroHost File Manager:
-   - Create a file named "CNAME" in the root with your domain: "www.mycoolapp.com"
-3. GitHub automatically provisions a Let's Encrypt SSL certificate for free.
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- View 6: Comprehensive Hosting Comparison ("Why We Are Superior") -->
-      <section id="view-compare" class="page-view" style="display: none;">
-        <div class="view-header">
-          <div class="view-title">
-            <h1>Why ZeroHost is Architecturally Superior</h1>
-            <p>A rigorous, head-to-head comparison against traditional shared hosting, serverless platforms, and cloud providers.</p>
-          </div>
-        </div>
-
-        <div class="compare-container-pro">
-          <table class="compare-pro-table">
-            <thead>
-              <tr>
-                <th style="width: 25%;">Feature / Capability</th>
-                <th class="col-zerohost" style="width: 25%;">⚡ ZeroHost Cloud</th>
-                <th style="width: 16%;">Hostinger / GoDaddy</th>
-                <th style="width: 17%;">Vercel (Free / Pro)</th>
-                <th style="width: 17%;">AWS / DigitalOcean</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>Monthly Base Cost</strong></td>
-                <td class="col-zerohost"><strong style="color: var(--success); font-size: 1.1rem;">$0.00 Forever</strong></td>
-                <td>$3.99/mo (jumps to $11.99 on renewal)</td>
-                <td>$0 (Hobby) / $20.00/mo (Pro)</td>
-                <td>$15 – $60+/mo (EC2 + Bandwidth)</td>
-              </tr>
-              <tr>
-                <td><strong>Global CDN Bandwidth</strong></td>
-                <td class="col-zerohost"><strong style="color: var(--accent);">Unmetered (jsDelivr Edge)</strong></td>
-                <td>100 GB – Capped by CPU limits</td>
-                <td>100 GB cap ($40/100GB overage)</td>
-                <td>$0.09 per GB (Billed monthly)</td>
-              </tr>
-              <tr>
-                <td><strong>Surprise Billing Risk</strong></td>
-                <td class="col-zerohost"><span class="badge-check">✓</span> <strong>Zero ($0 Hard Floor)</strong></td>
-                <td>Low (Account gets suspended)</td>
-                <td><span class="badge-cross">✕</span> <strong>High (Known $1,000+ bills)</strong></td>
-                <td><span class="badge-cross">✕</span> <strong>Very High (Runaway DDoS)</strong></td>
-              </tr>
-              <tr>
-                <td><strong>Max File Upload Size</strong></td>
-                <td class="col-zerohost"><strong style="color: var(--success);">Up to 2 GB per file</strong></td>
-                <td>50 MB – 100 MB PHP limit</td>
-                <td><span class="badge-cross">✕</span> <strong>4.5 MB Serverless Limit</strong></td>
-                <td>5 TB (S3, billed per GB)</td>
-              </tr>
-              <tr>
-                <td><strong>Source Code Protection</strong></td>
-                <td class="col-zerohost"><span class="badge-check">✓</span> <strong>100% Private Hidden Repo</strong></td>
-                <td>Server files (Hidden)</td>
-                <td>Private (Limited seats on free)</td>
-                <td>Private (Complex IAM setup)</td>
-              </tr>
-              <tr>
-                <td><strong>In-Browser Web Studio</strong></td>
-                <td class="col-zerohost"><span class="badge-check">✓</span> <strong>Dual Run/Storage Studio</strong></td>
-                <td>Old cPanel File Manager</td>
-                <td><span class="badge-cross">✕</span> None (Git CLI required)</td>
-                <td><span class="badge-cross">✕</span> None (SSH / SFTP only)</td>
-              </tr>
-              <tr>
-                <td><strong>Software Binaries (.exe / .zip)</strong></td>
-                <td class="col-zerohost"><span class="badge-check">✓</span> <strong>Native jsDelivr CDN Gateway</strong></td>
-                <td>Billed on storage & bandwidth</td>
-                <td><span class="badge-cross">✕</span> Strictly Prohibited / Limited</td>
-                <td>Billed on S3 egress ($0.09/GB)</td>
-              </tr>
-              <tr>
-                <td><strong>Technical Skill Required</strong></td>
-                <td class="col-zerohost"><span class="badge-check">✓</span> <strong>Zero (100% GUI / 1-Click)</strong></td>
-                <td>Low (cPanel)</td>
-                <td>Intermediate (Git, CLI, Node)</td>
-                <td>Advanced (DevOps, Linux, IAM)</td>
-              </tr>
-              <tr>
-                <td><strong>Commercial Projects Allowed</strong></td>
-                <td class="col-zerohost"><span class="badge-check">✓</span> <strong>100% Allowed ($0)</strong></td>
-                <td>Allowed</td>
-                <td><span class="badge-cross">✕</span> Prohibited on Free Hobby Tier</td>
-                <td>Allowed</td>
-              </tr>
-              <tr>
-                <td><strong>Automatic Free SSL</strong></td>
-                <td class="col-zerohost"><span class="badge-check">✓</span> <strong>Included Forever</strong></td>
-                <td>Free Year 1 (Charged on renewal)</td>
-                <td>Included</td>
-                <td>Complex ACM / Certbot setup</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Deep Dives -->
-        <div class="features-container-pro">
-          <div class="feature-box-pro">
-            <h3 style="color: #f87171;">⚠️ The Vercel Bandwidth & Payload Trap</h3>
-            <p>Vercel's free tier has a <strong>4.5 MB request body limit</strong> and a <strong>100 GB monthly bandwidth limit</strong>. If you distribute software installers or host media, you will exceed this in days. On Vercel Pro, bandwidth overage is <strong>$40 per 100 GB</strong>. A viral launch can easily hit you with a surprise $1,000+ bill.</p>
-          </div>
-
-          <div class="feature-box-pro">
-            <h3 style="color: #fbbf24;">⚠️ The Hostinger Renewal Price Hike</h3>
-            <p>Shared hosts like Hostinger advertise low intro prices like $2.99 or $3.99/mo, but lock you into 4-year upfront commitments. When renewal hits, prices jump by <strong>300% to 400% ($12 to $16/mo)</strong>, and your site is throttled by strict CPU and inode limits.</p>
-          </div>
-
-          <div class="feature-box-pro">
-            <h3 style="color: var(--success);">🛡️ How ZeroHost Solves This Forever</h3>
-            <p>ZeroHost separates Compute from Storage. Heavy files stream through jsDelivr (backed by Cloudflare and Fastly multi-gigabit edge), while web pages run on GitHub Pages. There are <strong>no bandwidth bills, no renewal traps, and no credit card on file</strong>.</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- View 7: Interactive Cost Savings Calculator -->
-      <section id="view-calculator" class="page-view" style="display: none;">
-        <div class="view-header">
-          <div class="view-title">
-            <h1>Interactive Hosting Cost Calculator</h1>
-            <p>Adjust the sliders below to calculate how much you save every year with ZeroHost's zero-cost cloud architecture.</p>
-          </div>
-        </div>
-
-        <div class="calc-card-pro">
-          <div class="calc-grid">
-            <!-- Left: Sliders -->
-            <div>
-              <div class="slider-group">
-                <div class="slider-header">
-                  <span class="slider-label">Number of Hosted Websites</span>
-                  <span class="slider-val" id="calc-val-sites">3 sites</span>
-                </div>
-                <input type="range" class="calc-slider" id="calc-slider-sites" min="1" max="25" value="3" oninput="updateCalculator()">
-                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-dim); margin-top: 0.35rem;">
-                  <span>1 site</span>
-                  <span>12 sites</span>
-                  <span>25 sites</span>
-                </div>
-              </div>
-
-              <div class="slider-group">
-                <div class="slider-header">
-                  <span class="slider-label">Monthly Global CDN Bandwidth</span>
-                  <span class="slider-val" id="calc-val-bandwidth">250 GB</span>
-                </div>
-                <input type="range" class="calc-slider" id="calc-slider-bandwidth" min="20" max="2000" step="10" value="250" oninput="updateCalculator()">
-                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-dim); margin-top: 0.35rem;">
-                  <span>20 GB</span>
-                  <span>1,000 GB (1 TB)</span>
-                  <span>2,000 GB (2 TB)</span>
-                </div>
-              </div>
-
-              <div class="slider-group" style="margin-bottom: 0;">
-                <div class="slider-header">
-                  <span class="slider-label">Storage / Installers per Site</span>
-                  <span class="slider-val" id="calc-val-storage">500 MB</span>
-                </div>
-                <input type="range" class="calc-slider" id="calc-slider-storage" min="100" max="10000" step="100" value="500" oninput="updateCalculator()">
-                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-dim); margin-top: 0.35rem;">
-                  <span>100 MB</span>
-                  <span>5 GB</span>
-                  <span>10 GB</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Right: Breakdown -->
-            <div class="calc-results-box">
-              <div>
-                <h4 style="font-size: 1.1rem; color: #fff; margin-bottom: 1.25rem;">Estimated Annual Hosting Bills</h4>
-                
-                <div class="provider-row">
-                  <span class="provider-name">Traditional Shared Hosting (Hostinger)</span>
-                  <span class="provider-cost cost-danger" id="calc-cost-hostinger">$287 / yr</span>
-                </div>
-
-                <div class="provider-row">
-                  <span class="provider-name">Vercel Pro (Seats + Bandwidth Overages)</span>
-                  <span class="provider-cost cost-danger" id="calc-cost-vercel">$480 / yr</span>
-                </div>
-
-                <div class="provider-row">
-                  <span class="provider-name">AWS Cloud (EC2 + S3 + CloudFront Data)</span>
-                  <span class="provider-cost cost-danger" id="calc-cost-aws">$395 / yr</span>
-                </div>
-
-                <div class="provider-row" style="border-bottom: none; padding-top: 1rem;">
-                  <span class="provider-name" style="color: #fff; font-weight: 700;">⚡ ZeroHost Cloud Platform</span>
-                  <span class="provider-cost cost-success">$0.00 / yr</span>
-                </div>
-              </div>
-
-              <div class="savings-highlight">
-                <div class="savings-sub">YOUR ESTIMATED ANNUAL SAVINGS</div>
-                <div class="savings-val" id="calc-total-saved">$387.00</div>
-                <div class="savings-sub">100% Free Forever • Zero Billing Risk</div>
-              </div>
             </div>
           </div>
         </div>
@@ -800,7 +865,7 @@ DNS Setup for Custom Domains:
     </div>
   </div>
 
-  <!-- GitHub Sign-In Modal -->
+  <!-- Real GitHub Sign-In Modal -->
   <div class="terminal-modal" id="signin-modal">
     <div class="terminal-box" style="max-width: 520px;">
       <div class="terminal-header">
@@ -809,8 +874,10 @@ DNS Setup for Custom Domains:
       </div>
       <div style="padding: 1.75rem;">
         <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; line-height: 1.6;">
-          ZeroHost uses your GitHub account to create and manage your private source repositories and public CDN gateways with 100% zero hosting costs.
+          ZeroHost connects to your GitHub account to manage your private source repositories, public CDN gateway, and continuous deployments with 100% zero hosting costs.
         </p>
+
+        <div id="signin-cli-box" style="display: none;"></div>
 
         <!-- Method 1: OAuth -->
         <a href="/api/auth/github" class="btn-primary" style="display: flex; justify-content: center; width: 100%; padding: 0.75rem; text-decoration: none; margin-bottom: 1.25rem;">
@@ -819,7 +886,7 @@ DNS Setup for Custom Domains:
 
         <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem;">
           <div style="flex: 1; height: 1px; background: var(--border);"></div>
-          <span style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase;">or instant token connection</span>
+          <span style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase;">or direct token authentication</span>
           <div style="flex: 1; height: 1px; background: var(--border);"></div>
         </div>
 
@@ -844,4 +911,3 @@ DNS Setup for Custom Domains:
   <script src="js/app.js"></script>
 </body>
 </html>
-

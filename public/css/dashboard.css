@@ -48,6 +48,67 @@ body {
 ::-webkit-scrollbar-thumb:hover { background: #334155; }
 
 /* ---- Layout ---- */
+.public-landing-container {
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  display: block;
+}
+
+.public-nav-wrapper {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: rgba(8, 12, 20, 0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+
+.public-nav {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.public-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.public-nav-links a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.public-nav-links a:hover {
+  color: #fff;
+}
+
+.public-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.public-section {
+  padding: 5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.public-footer {
+  padding: 4rem 1.5rem 3rem;
+  background: #05080f;
+  border-top: 1px solid var(--border);
+}
+
 .app-container {
   display: flex;
   min-height: 100vh;

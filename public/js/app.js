@@ -25,7 +25,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   handleUrlParams();
   await checkAuth();
   await loadTemplates();
-  await loadProjects();
+  if (state.user) {
+    await loadProjects();
+  }
 });
 
 // Handle URL query notices / errors
@@ -68,12 +70,14 @@ function dismissNotification() {
 
 // Navigation & Tab Switching
 function setupNavigation() {
-  const navItems = document.querySelectorAll('.nav-item');
+  const navItems = document.querySelectorAll('.nav-menu .nav-item');
   navItems.forEach(item => {
     item.addEventListener('click', (e) => {
-      e.preventDefault();
       const tab = item.getAttribute('data-tab');
-      switchTab(tab);
+      if (tab) {
+        e.preventDefault();
+        switchTab(tab);
+      }
     });
   });
 
@@ -90,11 +94,11 @@ function setupNavigation() {
 function switchTab(tabName) {
   if (tabName === 'editor') tabName = 'filemanager';
 
-  document.querySelectorAll('.nav-item').forEach(item => {
+  document.querySelectorAll('.nav-menu .nav-item').forEach(item => {
     item.classList.toggle('active', item.getAttribute('data-tab') === tabName);
   });
 
-  const views = ['home', 'projects', 'wizard', 'filemanager', 'getting-started', 'compare', 'calculator', 'architecture'];
+  const views = ['projects', 'wizard', 'filemanager', 'architecture'];
   views.forEach(v => {
     const el = document.getElementById(`view-${v}`);
     if (el) el.style.display = (v === tabName) ? 'block' : 'none';
@@ -102,8 +106,66 @@ function switchTab(tabName) {
 
   if (tabName === 'filemanager') {
     populateFileManagerProjectDropdown();
-  } else if (tabName === 'calculator') {
+  }
+}
+
+// View Mode Switching (Public Marketing Site vs Protected Console)
+function updateAppViewMode() {
+  const publicView = document.getElementById('public-view');
+  const appView = document.getElementById('app-view');
+  const publicAuthActions = document.getElementById('public-auth-actions');
+
+  if (state.user) {
+    // Authenticated user -> Show Console Dashboard, Hide Public Site
+    if (publicView) publicView.style.display = 'none';
+    if (appView) appView.style.display = 'flex';
+    switchTab('projects');
+    renderAuth();
+
+    if (publicAuthActions) {
+      publicAuthActions.innerHTML = `
+        <button class="btn-primary" style="padding: 0.5rem 1.2rem; font-size: 0.85rem;" onclick="showAppConsole()">
+          <span>⚡</span> Open Console →
+        </button>
+      `;
+    }
+  } else {
+    // Guest / Unauthenticated -> Show Public Marketing Site, Hide Console Dashboard
+    if (publicView) publicView.style.display = 'block';
+    if (appView) appView.style.display = 'none';
+
+    if (publicAuthActions) {
+      publicAuthActions.innerHTML = `
+        <button class="btn-github-login" style="padding: 0.5rem 1.1rem; font-size: 0.85rem;" onclick="openSignInModal()">
+          <span>🐙</span> Sign In with GitHub
+        </button>
+        <button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.85rem;" onclick="openSignInModal()">
+          <span>🚀</span> Get Started Free
+        </button>
+      `;
+    }
     updateCalculator();
+  }
+}
+
+function showPublicSite() {
+  const publicView = document.getElementById('public-view');
+  const appView = document.getElementById('app-view');
+  if (publicView) publicView.style.display = 'block';
+  if (appView) appView.style.display = 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  updateCalculator();
+}
+
+function showAppConsole() {
+  const publicView = document.getElementById('public-view');
+  const appView = document.getElementById('app-view');
+  if (state.user) {
+    if (publicView) publicView.style.display = 'none';
+    if (appView) appView.style.display = 'flex';
+    switchTab('projects');
+  } else {
+    openSignInModal();
   }
 }
 
@@ -184,10 +246,11 @@ async function checkAuth() {
     const data = await res.json();
     state.user = data.user;
     state.hasCliLogin = data.hasCliLogin;
-    renderAuth();
   } catch (err) {
     console.error('Auth check error:', err);
+    state.user = null;
   }
+  updateAppViewMode();
 }
 
 function renderAuth() {
@@ -204,24 +267,34 @@ function renderAuth() {
       </div>
     `;
   } else {
-    container.innerHTML = `
-      <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
-        ${state.hasCliLogin ? `
-          <button class="btn-primary" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;" onclick="cliLogin()" title="Instant 1-Click login using local GitHub CLI session">
-            <span>⚡</span> Connect as @MagicalMadhur (CLI)
-          </button>
-        ` : ''}
-        <button class="btn-github-login" style="padding: 0.45rem 1rem; font-size: 0.85rem;" onclick="openSignInModal()">
-          <span>🐙</span> Sign In with GitHub
-        </button>
-      </div>
-    `;
+    container.innerHTML = '';
   }
 }
 
 function openSignInModal() {
   const modal = document.getElementById('signin-modal');
-  if (modal) modal.style.display = 'flex';
+  if (!modal) return;
+  modal.style.display = 'flex';
+
+  const cliBox = document.getElementById('signin-cli-box');
+  if (cliBox) {
+    if (state.hasCliLogin) {
+      cliBox.innerHTML = `
+        <button class="btn-primary" style="width: 100%; justify-content: center; padding: 0.75rem; margin-bottom: 1rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="cliLogin()">
+          <span>⚡</span> Quick Sign-In via Local GitHub CLI (@MagicalMadhur)
+        </button>
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+          <div style="flex: 1; height: 1px; background: var(--border);"></div>
+          <span style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase;">or</span>
+          <div style="flex: 1; height: 1px; background: var(--border);"></div>
+        </div>
+      `;
+      cliBox.style.display = 'block';
+    } else {
+      cliBox.innerHTML = '';
+      cliBox.style.display = 'none';
+    }
+  }
 }
 
 function closeSignInModal() {
@@ -252,7 +325,7 @@ async function handleTokenLogin() {
 
     state.user = data.user;
     closeSignInModal();
-    renderAuth();
+    updateAppViewMode();
     await loadProjects();
     showNotification(`⚡ Successfully signed in as @${data.user.login}! Ready to manage deployments.`);
   } catch (err) {
@@ -266,7 +339,8 @@ async function cliLogin() {
     const data = await res.json();
     if (data.success) {
       state.user = data.user;
-      renderAuth();
+      closeSignInModal();
+      updateAppViewMode();
       await loadProjects();
       showNotification(`⚡ Signed in as @${data.user.login}! Ready to manage your cloud deployments.`);
     } else {
@@ -280,8 +354,8 @@ async function cliLogin() {
 async function logout() {
   await fetch('/api/auth/logout', { method: 'POST' });
   state.user = null;
-  renderAuth();
-  await loadProjects();
+  state.projects = [];
+  updateAppViewMode();
 }
 
 // Templates Loader
@@ -474,9 +548,9 @@ function renderProjects(projects) {
         <h3>Sign In to Manage Your Deployments</h3>
         <p>Connect your GitHub account to access your private repositories, live web apps, and file manager.</p>
         <div style="display: flex; gap: 0.75rem; justify-content: center; margin-top: 1.25rem;">
-          <a href="/api/auth/github" class="btn-github-login" style="padding: 0.6rem 1.4rem; font-size: 0.95rem;">
+          <button onclick="openSignInModal()" class="btn-github-login" style="padding: 0.6rem 1.4rem; font-size: 0.95rem;">
             <span>🐙</span> Sign In with GitHub
-          </a>
+          </button>
         </div>
       </div>
     `;
