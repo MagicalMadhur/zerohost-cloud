@@ -119,6 +119,45 @@ router.get('/', async (req, res) => {
     });
   }
 
+  // Auto-discover user's ZeroHost repositories from GitHub if authenticated
+  const token = req.session?.githubToken;
+  if (token && token !== 'demo-token') {
+    try {
+      const service = new GitHubService(token, false);
+      const reposRes = await service.api.get('/user/repos?per_page=100&sort=updated');
+      if (Array.isArray(reposRes.data)) {
+        for (const repo of reposRes.data) {
+          if (repo.name.endsWith('-source')) {
+            const slug = repo.name.replace(/-source$/, '');
+            let existing = globalProjects.find(p => (p.slug === slug || p.id === `proj_${slug}`) && (p.owner === user.login || !p.owner));
+            if (!existing) {
+              existing = {
+                id: `proj_${slug}`,
+                name: slug,
+                slug,
+                owner: user.login,
+                templateId: 'landing-page',
+                computeProvider: 'github_pages_jsdelivr',
+                privateRepo: repo.html_url,
+                publicRepo: `https://github.com/${user.login}/${slug}-cdn`,
+                liveUrl: `https://${user.login.toLowerCase()}.github.io/${slug}-cdn/`,
+                cdnUrl: `https://cdn.jsdelivr.net/gh/${user.login}/${slug}-cdn@latest/`,
+                status: 'active',
+                createdAt: repo.created_at || new Date().toISOString(),
+                logs: [`Discovered from GitHub: ${repo.full_name}`],
+                files: []
+              };
+              globalProjects.unshift(existing);
+              saveProjects(globalProjects);
+            }
+          }
+        }
+      }
+    } catch (discErr) {
+      console.warn('Repository auto-discovery failed:', discErr.message);
+    }
+  }
+
   // Filter projects belonging exclusively to this authenticated user
   const userProjects = globalProjects.filter(p => p.owner === user.login || (!p.owner && user.login === 'MagicalMadhur'));
 
@@ -134,7 +173,6 @@ router.get('/', async (req, res) => {
   });
 
   // Sync projects from GitHub if user has an active token
-  const token = req.session?.githubToken;
   if (token && token !== 'demo-token') {
     await Promise.all(userProjects.map(p => syncProjectFromGitHub(p, token)));
   }
@@ -204,8 +242,13 @@ router.post('/', async (req, res) => {
 
 // Live In-Browser Web Preview
 router.get('/:id/preview', (req, res) => {
-  const project = globalProjects.find((p) => p.id === req.params.id);
-  if (!project) return res.status(404).send('<h1>Project not found</h1>');
+  const project = globalProjects.find((p) => p.id === req.params.id || p.slug === req.params.id || p.name === req.params.id);
+  if (!project) {
+    if (req.params.id && req.params.id.toLowerCase().includes('velocity')) {
+      return res.redirect('https://magicalmadhur.github.io/velocity-cdn/');
+    }
+    return res.status(404).send('<h1>Project not found</h1>');
+  }
 
   // Immediately redirect to real live URL if deployed (e.g. GitHub Pages)
   if (project.liveUrl && project.liveUrl.startsWith('http')) {
@@ -252,7 +295,7 @@ router.get('/:id/preview', (req, res) => {
 
 // Get Project Details & Classified Files
 router.get('/:id', async (req, res) => {
-  const project = globalProjects.find((p) => p.id === req.params.id);
+  const project = globalProjects.find((p) => p.id === req.params.id || p.slug === req.params.id || p.name === req.params.id);
   if (!project) return res.status(404).json({ error: 'Project not found' });
 
   // Sync latest from GitHub if authenticated
