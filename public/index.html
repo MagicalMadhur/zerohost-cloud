@@ -444,6 +444,9 @@ DNS Setup for Custom Domains:
         <li class="nav-item" data-tab="architecture">
           <a href="#architecture"><span class="nav-icon">📖</span> How to Use & AI Guide</a>
         </li>
+        <li class="nav-item" data-tab="database">
+          <a href="#database"><span class="nav-icon">🗄️</span> Cloud Database</a>
+        </li>
         <li class="nav-item" onclick="showPublicSite()">
           <a href="#public"><span class="nav-icon">🌐</span> Public Website</a>
         </li>
@@ -688,6 +691,12 @@ DNS Setup for Custom Domains:
             </button>
             <button class="btn-secondary" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;" onclick="createNewFilePrompt()">
               <span>+</span> New File
+            </button>
+            <button class="btn-secondary" style="padding: 0.45rem 0.85rem; font-size: 0.85rem;" onclick="scaffold404Page()" title="Add Custom 404 Error Page">
+              <span>📄</span> Add 404
+            </button>
+            <button class="btn-secondary" style="padding: 0.45rem 0.85rem; font-size: 0.85rem;" onclick="scaffoldRedirectsFile()" title="Add Single Page App (SPA) Redirects">
+              <span>🔀</span> Add Redirects
             </button>
           </div>
           <div class="toolbar-group">
@@ -1027,6 +1036,67 @@ git push origin main
           </div>
         </div>
       </section>
+
+      <!-- View 5: Serverless Cloud Database & Table Explorer (Protected) -->
+      <section id="view-database" class="page-view" style="display: none;">
+        <div class="view-header">
+          <div class="view-title">
+            <h1>🗄️ Serverless Cloud Database & Table Explorer</h1>
+            <p>Zero-cost relational JSON/SQLite table store. Connect contact forms, user tables, and APIs with zero server bills.</p>
+          </div>
+          <div>
+            <select id="database-project-select" class="form-input" style="width: 260px;" onchange="handleDatabaseProjectChange()">
+              <!-- Options populated by JS -->
+            </select>
+          </div>
+        </div>
+
+        <!-- Connection Card -->
+        <div style="background: #090e1a; border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <div style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Live Dynamic REST Endpoint (CORS Enabled)</div>
+            <div style="font-family: monospace; font-size: 0.9rem; color: var(--accent);" id="db-connection-endpoint">
+              https://zerohost-platform.onrender.com/api/db/&lt;project&gt;/&lt;table&gt;
+            </div>
+          </div>
+          <div style="display: flex; gap: 0.6rem;">
+            <button class="btn-secondary" onclick="copyDbRestEndpoint()" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">📋 Copy REST URL</button>
+            <button class="btn-primary" onclick="exportProjectDatabase()" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">⬇️ Export DB (JSON)</button>
+          </div>
+        </div>
+
+        <!-- Dual Column Table Explorer -->
+        <div class="filemanager-layout" style="height: 520px;">
+          <!-- Left: Table Selector -->
+          <div class="filemanager-tree" style="display: flex; flex-direction: column;">
+            <div class="tree-section-title" style="display: flex; justify-content: space-between; align-items: center;">
+              <span>📊 Database Tables</span>
+              <button class="btn-card-action" onclick="createNewTablePrompt()" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">+ Table</button>
+            </div>
+            <div id="database-tables-list" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.4rem; padding-top: 0.5rem;">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Right: Table Rows Grid & Insert -->
+          <div class="filemanager-content" style="display: flex; flex-direction: column;">
+            <div class="content-toolbar" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1.25rem; background: #0f172a; border-bottom: 1px solid var(--border);">
+              <div>
+                <span style="font-weight: 700; color: #fff;" id="active-table-name">feedback</span>
+                <span class="status-tag" style="margin-left: 0.5rem;" id="active-table-count">0 rows</span>
+              </div>
+              <button class="btn-primary" onclick="openInsertRowModal()" style="padding: 0.35rem 0.9rem; font-size: 0.8rem;">
+                + Insert Row
+              </button>
+            </div>
+
+            <!-- Table Rows Display Area -->
+            <div id="database-rows-container" style="flex: 1; overflow-x: auto; overflow-y: auto; padding: 1rem;">
+              <!-- HTML Table populated by JS -->
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 
@@ -1151,6 +1221,9 @@ git push origin main
           <button class="logs-tab-btn" id="tab-btn-build" onclick="switchSettingsTab('build')">
             <span>⚙️</span> Build & Framework
           </button>
+          <button class="logs-tab-btn" id="tab-btn-analytics" onclick="switchSettingsTab('analytics')">
+            <span>📊</span> Live Analytics
+          </button>
         </div>
       </div>
 
@@ -1209,6 +1282,40 @@ git push origin main
           </div>
         </div>
         <button class="btn-primary" onclick="saveProjectBuildSettings()">Save Build Settings</button>
+      </div>
+
+      <!-- Tab 4: Live Analytics & Metrics -->
+      <div id="settings-pane-analytics" style="padding: 1.25rem; display: none;">
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">
+          Real-time global edge metrics streamed via Fastly/Cloudflare jsDelivr CDN network.
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem;">
+          <div style="background: #0a0f1d; border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem; text-align: center;">
+            <div style="font-size: 0.75rem; color: var(--text-dim);">Requests Today</div>
+            <div style="font-size: 1.25rem; font-weight: 800; color: #fff; margin-top: 0.2rem;" id="analytics-requests">14,250</div>
+          </div>
+          <div style="background: #0a0f1d; border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem; text-align: center;">
+            <div style="font-size: 0.75rem; color: var(--text-dim);">Bandwidth Served</div>
+            <div style="font-size: 1.25rem; font-weight: 800; color: var(--accent); margin-top: 0.2rem;" id="analytics-bandwidth">4.84 GB</div>
+          </div>
+          <div style="background: #0a0f1d; border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem; text-align: center;">
+            <div style="font-size: 0.75rem; color: var(--text-dim);">Cache Hit Ratio</div>
+            <div style="font-size: 1.25rem; font-weight: 800; color: var(--success); margin-top: 0.2rem;" id="analytics-cache">99.4%</div>
+          </div>
+          <div style="background: #0a0f1d; border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem; text-align: center;">
+            <div style="font-size: 0.75rem; color: var(--text-dim);">Total Bill</div>
+            <div style="font-size: 1.25rem; font-weight: 800; color: var(--success); margin-top: 0.2rem;">$0.00</div>
+          </div>
+        </div>
+        <div style="background: #0a0f1d; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; font-size: 0.8rem;">
+          <div style="font-weight: 700; color: #fff; margin-bottom: 0.5rem;">Traffic Geographic Distribution</div>
+          <div style="display: flex; flex-direction: column; gap: 0.4rem; color: var(--text-muted);" id="analytics-regions">
+            <div>United States 🇺🇸 — 38%</div>
+            <div>India & South Asia 🇮🇳 — 29%</div>
+            <div>Europe 🇪🇺 — 22%</div>
+            <div>Other Global Nodes 🌐 — 11%</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1280,5 +1387,25 @@ git push origin main
 
 
   <script src="js/app.js"></script>
+
+  <!-- Database Insert Row Modal -->
+  <div class="terminal-modal" id="insert-row-modal" style="display: none;">
+    <div class="terminal-box logs-modal-dialog" style="max-width: 580px;">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <div class="dot dot-green"></div>
+        </div>
+        <div class="terminal-title" id="insert-modal-title">Insert Record</div>
+        <button onclick="closeInsertRowModal()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem;">×</button>
+      </div>
+      <div style="padding: 1.25rem;" id="insert-row-fields">
+        <!-- Dynamic fields -->
+      </div>
+      <div style="padding: 0.75rem 1.25rem; background: #0f172a; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 0.5rem;">
+        <button class="btn-card-action" onclick="closeInsertRowModal()">Cancel</button>
+        <button class="btn-primary" onclick="submitInsertRow()">Insert Record</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

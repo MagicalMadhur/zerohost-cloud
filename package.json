@@ -7,6 +7,9 @@
     "start": "node src/server.js",
     "dev": "node src/server.js"
   },
+  "bin": {
+    "zh": "bin/zh.js"
+  },
   "dependencies": {
     "adm-zip": "^0.6.1",
     "axios": "^1.7.7",

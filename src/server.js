@@ -16,6 +16,7 @@ const cookieSession = require('cookie-session');
 const authRoutes = require('./routes/auth');
 const projectRoutes = require('./routes/projects');
 const templateRoutes = require('./routes/templates');
+const { router: databaseRoutes, publicRouter: publicDbRoutes } = require('./routes/database');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -42,6 +43,8 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/templates', templateRoutes);
+app.use('/api/database', databaseRoutes);
+app.use('/api/db', publicDbRoutes);
 
 // Catch-all route to serve the dashboard SPA
 app.get('*', (req, res) => {

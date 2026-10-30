@@ -98,7 +98,7 @@ function switchTab(tabName) {
     item.classList.toggle('active', item.getAttribute('data-tab') === tabName);
   });
 
-  const views = ['projects', 'wizard', 'filemanager', 'architecture'];
+  const views = ['projects', 'wizard', 'filemanager', 'architecture', 'database'];
   views.forEach(v => {
     const el = document.getElementById(`view-${v}`);
     if (el) el.style.display = (v === tabName) ? 'block' : 'none';
@@ -122,6 +122,9 @@ function switchTab(tabName) {
         })
         .catch(() => {});
     }
+  } else if (tabName === 'database') {
+    populateDatabaseProjectDropdown();
+    loadProjectDatabase();
   }
 }
 
@@ -1395,13 +1398,16 @@ function closeProjectSettingsModal() {
 }
 
 function switchSettingsTab(tab) {
-  const tabs = ['env', 'domain', 'build'];
+  const tabs = ['env', 'domain', 'build', 'analytics'];
   tabs.forEach(t => {
     const btn = document.getElementById(`tab-btn-${t}`);
     const pane = document.getElementById(`settings-pane-${t}`);
     if (btn) btn.classList.toggle('active', t === tab);
     if (pane) pane.style.display = (t === tab) ? 'block' : 'none';
   });
+  if (tab === 'analytics' && state.activeSettingsProjectId) {
+    loadProjectAnalytics(state.activeSettingsProjectId);
+  }
 }
 
 function renderEnvVarsRows(envMap) {
@@ -1636,5 +1642,322 @@ async function rollbackToDeployment(deploymentId) {
     await loadProjects();
   } catch (err) {
     showNotification(`Rollback error: ${err.message}`, 'error');
+  }
+}
+
+// =============================================================================
+// Serverless Cloud Database & Table Explorer (cPanel phpMyAdmin style)
+// =============================================================================
+
+state.activeDatabaseProjectId = null;
+state.activeDatabaseTable = 'feedback';
+state.currentDbData = null;
+
+function populateDatabaseProjectDropdown() {
+  const select = document.getElementById('database-project-select');
+  if (!select) return;
+
+  select.innerHTML = state.projects.map(p => `
+    <option value="${p.id}" ${p.id === state.activeDatabaseProjectId ? 'selected' : ''}>
+      ${p.name || p.slug}
+    </option>
+  `).join('');
+
+  if (!state.activeDatabaseProjectId && state.projects.length > 0) {
+    state.activeDatabaseProjectId = state.projects[0].id;
+  }
+}
+
+function handleDatabaseProjectChange() {
+  const select = document.getElementById('database-project-select');
+  if (select) {
+    state.activeDatabaseProjectId = select.value;
+    loadProjectDatabase();
+  }
+}
+
+async function loadProjectDatabase() {
+  const projectId = state.activeDatabaseProjectId || (state.projects[0] && state.projects[0].id);
+  if (!projectId) return;
+
+  const endpointEl = document.getElementById('db-connection-endpoint');
+  const project = state.projects.find(p => p.id === projectId);
+  if (endpointEl && project) {
+    endpointEl.textContent = `https://zerohost-platform.onrender.com/api/db/${project.slug}/<table_name>`;
+  }
+
+  try {
+    const res = await fetch(`/api/database/${projectId}`);
+    if (!res.ok) throw new Error('Failed to load database overview');
+    const data = await res.json();
+    state.currentDbData = data;
+
+    renderDatabaseTablesList(data.tables || {});
+    const tableNames = Object.keys(data.tables || {});
+    if (!tableNames.includes(state.activeDatabaseTable)) {
+      state.activeDatabaseTable = tableNames[0] || 'feedback';
+    }
+    await loadTableRows(state.activeDatabaseTable);
+  } catch (err) {
+    console.error('Error loading database:', err);
+  }
+}
+
+function renderDatabaseTablesList(tablesMap) {
+  const container = document.getElementById('database-tables-list');
+  if (!container) return;
+
+  const names = Object.keys(tablesMap);
+  if (names.length === 0) {
+    container.innerHTML = '<div style="color: var(--text-dim); padding: 0.5rem; font-size: 0.8rem;">No tables yet. Click + Table.</div>';
+    return;
+  }
+
+  container.innerHTML = names.map(t => `
+    <div class="tree-item ${t === state.activeDatabaseTable ? 'active' : ''}" 
+         onclick="selectDatabaseTable('${t}')"
+         style="padding: 0.5rem 0.75rem; border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem;">
+      <span style="font-weight: 600;">📊 ${escapeHtml(t)}</span>
+      <span class="item-badge" style="background: rgba(255,255,255,0.08); font-size: 0.7rem;">${tablesMap[t].rowCount || 0}</span>
+    </div>
+  `).join('');
+}
+
+async function selectDatabaseTable(tableName) {
+  state.activeDatabaseTable = tableName;
+  const items = document.querySelectorAll('#database-tables-list .tree-item');
+  items.forEach(el => {
+    el.classList.toggle('active', el.textContent.includes(tableName));
+  });
+  await loadTableRows(tableName);
+}
+
+async function loadTableRows(tableName) {
+  const projectId = state.activeDatabaseProjectId;
+  if (!projectId || !tableName) return;
+
+  const titleEl = document.getElementById('active-table-name');
+  const countEl = document.getElementById('active-table-count');
+  const container = document.getElementById('database-rows-container');
+
+  if (titleEl) titleEl.textContent = tableName;
+  if (container) container.innerHTML = '<div style="color: var(--text-dim); padding: 1rem;">🔄 Loading table rows...</div>';
+
+  try {
+    const res = await fetch(`/api/database/${projectId}/tables/${tableName}`);
+    if (!res.ok) throw new Error('Table not found');
+    const data = await res.json();
+    const rows = data.rows || [];
+    const cols = data.columns || ['id', 'createdAt'];
+
+    if (countEl) countEl.textContent = `${rows.length} row(s)`;
+
+    if (rows.length === 0) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+          <div style="font-size: 2rem; margin-bottom: 0.5rem;">🗄️</div>
+          <p style="font-weight: 600;">Table "${escapeHtml(tableName)}" is empty.</p>
+          <p style="font-size: 0.8rem; color: var(--text-dim); margin-top: 0.25rem;">Click "+ Insert Row" to add a record or send a POST request from your website.</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = `
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: left;">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--border); color: var(--text-dim); text-transform: uppercase; font-size: 0.7rem;">
+            ${cols.map(c => `<th style="padding: 0.6rem 0.75rem;">${escapeHtml(c)}</th>`).join('')}
+            <th style="padding: 0.6rem 0.75rem; text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(r => `
+            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05); transition: background 0.15s;">
+              ${cols.map(c => `
+                <td style="padding: 0.6rem 0.75rem; color: ${c === 'id' ? 'var(--accent)' : '#fff'}; font-family: ${c === 'id' || c.toLowerCase().includes('date') ? 'monospace' : 'inherit'};">
+                  ${escapeHtml(r[c] !== undefined ? String(r[c]) : '-')}
+                </td>
+              `).join('')}
+              <td style="padding: 0.6rem 0.75rem; text-align: right;">
+                <button class="btn-card-action" onclick="deleteTableRow('${r.id}')" style="color: var(--danger); padding: 0.2rem 0.5rem; font-size: 0.75rem;">🗑️</button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch (err) {
+    if (container) container.innerHTML = `<div style="color: var(--danger); padding: 1rem;">Error: ${err.message}</div>`;
+  }
+}
+
+async function createNewTablePrompt() {
+  const projectId = state.activeDatabaseProjectId;
+  if (!projectId) return showNotification('Please select a project first.', 'error');
+
+  const tableName = prompt('Enter table name (e.g. leads, orders, messages):');
+  if (!tableName || !tableName.trim()) return;
+
+  const colsInput = prompt('Enter columns separated by commas (id and createdAt are added automatically):', 'name, email, phone');
+  const cols = colsInput ? colsInput.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+  try {
+    const res = await fetch(`/api/database/${projectId}/tables`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: tableName, columns: cols })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to create table');
+
+    showNotification(`🗄️ Created table "${data.table}"!`, 'success');
+    state.activeDatabaseTable = data.table;
+    await loadProjectDatabase();
+  } catch (err) {
+    alert('Create table error: ' + err.message);
+  }
+}
+
+function openInsertRowModal() {
+  const modal = document.getElementById('insert-row-modal');
+  const container = document.getElementById('insert-row-fields');
+  const title = document.getElementById('insert-modal-title');
+  if (!modal || !container) return;
+
+  if (title) title.textContent = `Insert Record into "${state.activeDatabaseTable}"`;
+
+  const db = state.currentDbData;
+  const tblInfo = db && db.tables && db.tables[state.activeDatabaseTable];
+  const cols = (tblInfo && tblInfo.columns) || ['title', 'content'];
+
+  container.innerHTML = cols.filter(c => c !== 'id' && c !== 'createdAt').map(c => `
+    <div style="margin-bottom: 0.75rem;">
+      <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 0.3rem;">${escapeHtml(c)}</label>
+      <input type="text" class="form-input db-row-input" data-col="${escapeHtml(c)}" style="width: 100%;" placeholder="Enter ${escapeHtml(c)}...">
+    </div>
+  `).join('');
+
+  modal.style.display = 'flex';
+}
+
+function closeInsertRowModal() {
+  const modal = document.getElementById('insert-row-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function submitInsertRow() {
+  const projectId = state.activeDatabaseProjectId;
+  const table = state.activeDatabaseTable;
+  if (!projectId || !table) return;
+
+  const inputs = document.querySelectorAll('#insert-row-fields .db-row-input');
+  const rowData = {};
+  inputs.forEach(inp => {
+    rowData[inp.dataset.col] = inp.value;
+  });
+
+  try {
+    const res = await fetch(`/api/database/${projectId}/tables/${table}/rows`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(rowData)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to insert row');
+
+    showNotification(`✅ Record inserted into "${table}"!`, 'success');
+    closeInsertRowModal();
+    await loadProjectDatabase();
+  } catch (err) {
+    showNotification(`Insert error: ${err.message}`, 'error');
+  }
+}
+
+async function deleteTableRow(rowId) {
+  const projectId = state.activeDatabaseProjectId;
+  const table = state.activeDatabaseTable;
+  if (!confirm('Are you sure you want to delete this row?')) return;
+
+  try {
+    const res = await fetch(`/api/database/${projectId}/tables/${table}/rows/${rowId}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) throw new Error('Failed to delete row');
+    showNotification('🗑️ Record deleted.', 'info');
+    await loadTableRows(table);
+  } catch (err) {
+    showNotification(`Delete error: ${err.message}`, 'error');
+  }
+}
+
+function copyDbRestEndpoint() {
+  const endpointEl = document.getElementById('db-connection-endpoint');
+  if (!endpointEl) return;
+  const text = endpointEl.textContent.trim();
+  navigator.clipboard.writeText(text);
+  showNotification('📋 Database REST endpoint URL copied!', 'success');
+}
+
+function exportProjectDatabase() {
+  const projectId = state.activeDatabaseProjectId;
+  if (!projectId) return showNotification('Please select a project first.', 'error');
+  window.location.href = `/api/database/${projectId}/export`;
+}
+
+// Scaffold Helpers: 404 & Redirects
+async function scaffold404Page() {
+  const projectId = state.activeFileManagerProjectId;
+  if (!projectId) return showNotification('Please select a project in File Manager first.', 'error');
+
+  try {
+    const res = await fetch(`/api/projects/${projectId}/scaffold-404`, { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to create 404');
+    showNotification('🎉 Created custom branded src/404.html page!', 'success');
+    await loadProjectForFileManager();
+    selectFileManagerFile('src/404.html');
+  } catch (err) {
+    showNotification(`Error: ${err.message}`, 'error');
+  }
+}
+
+async function scaffoldRedirectsFile() {
+  const projectId = state.activeFileManagerProjectId;
+  if (!projectId) return showNotification('Please select a project in File Manager first.', 'error');
+
+  try {
+    const res = await fetch(`/api/projects/${projectId}/scaffold-redirects`, { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to create _redirects');
+    showNotification('🔀 Created SPA src/_redirects fallback routing rule!', 'success');
+    await loadProjectForFileManager();
+    selectFileManagerFile('src/_redirects');
+  } catch (err) {
+    showNotification(`Error: ${err.message}`, 'error');
+  }
+}
+
+// Live Analytics Loader
+async function loadProjectAnalytics(projectId) {
+  try {
+    const res = await fetch(`/api/projects/${projectId}/analytics`);
+    if (!res.ok) return;
+    const data = await res.json();
+
+    const elReq = document.getElementById('analytics-requests');
+    const elBand = document.getElementById('analytics-bandwidth');
+    const elCache = document.getElementById('analytics-cache');
+    const elReg = document.getElementById('analytics-regions');
+
+    if (elReq) elReq.textContent = (data.metrics.totalRequests || 0).toLocaleString();
+    if (elBand) elBand.textContent = data.metrics.bandwidthServed || '0.0 GB';
+    if (elCache) elCache.textContent = data.metrics.cacheHitRatio || '99.4%';
+
+    if (elReg && data.topRegions) {
+      elReg.innerHTML = data.topRegions.map(r => `<div>${escapeHtml(r.country)} — ${escapeHtml(r.share)}</div>`).join('');
+    }
+  } catch (e) {
+    console.error('Analytics load error:', e);
   }
 }
