@@ -376,7 +376,9 @@ router.get('/:id/logs', async (req, res) => {
       if (/href="\/(?!\/)[a-zA-Z0-9_\-\.\/]+/.test(f.content) || /src="\/(?!\/)[a-zA-Z0-9_\-\.\/]+/.test(f.content)) {
         hasLeadingSlash = true;
       }
-      if (f.content.includes('-source') || f.content.includes('Anti-Browser') || f.content.includes('Velocity-Download-Manager-Anti-Browser-Throttle')) {
+      // Check for actual private repository links or leaked keywords (not normal phrases like 'open-source')
+      const privateRepoPattern = new RegExp(`${project.slug}-source|github\\.com\\/[^"'/]+\\/[^"'/]+-source|Anti-Browser|Velocity-Download-Manager-Anti-Browser-Throttle`, 'i');
+      if (privateRepoPattern.test(f.content)) {
         hasPrivateRepoLeak = true;
       }
     }
