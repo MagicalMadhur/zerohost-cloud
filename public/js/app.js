@@ -1938,7 +1938,7 @@ async function scaffoldRedirectsFile() {
   }
 }
 
-// Live Analytics Loader
+// Live Analytics Loader (Real Requests & Visitor Tracking)
 async function loadProjectAnalytics(projectId) {
   try {
     const res = await fetch(`/api/projects/${projectId}/analytics`);
@@ -1948,14 +1948,31 @@ async function loadProjectAnalytics(projectId) {
     const elReq = document.getElementById('analytics-requests');
     const elBand = document.getElementById('analytics-bandwidth');
     const elCache = document.getElementById('analytics-cache');
-    const elReg = document.getElementById('analytics-regions');
+    const elStatus = document.getElementById('analytics-status-message');
+    const elVisits = document.getElementById('analytics-visits-list');
 
     if (elReq) elReq.textContent = (data.metrics.totalRequests || 0).toLocaleString();
-    if (elBand) elBand.textContent = data.metrics.bandwidthServed || '0.0 GB';
-    if (elCache) elCache.textContent = data.metrics.cacheHitRatio || '99.4%';
+    if (elBand) elBand.textContent = data.metrics.bandwidthServed || '0.0 KB';
+    if (elCache) elCache.textContent = data.metrics.cacheHitRatio || 'N/A';
 
-    if (elReg && data.topRegions) {
-      elReg.innerHTML = data.topRegions.map(r => `<div>${escapeHtml(r.country)} — ${escapeHtml(r.share)}</div>`).join('');
+    if (elStatus && data.statusMessage) {
+      elStatus.textContent = data.statusMessage;
+    }
+
+    if (elVisits) {
+      if (data.recentVisits && data.recentVisits.length > 0) {
+        elVisits.innerHTML = data.recentVisits.map(v => {
+          const time = new Date(v.timestamp).toLocaleTimeString();
+          const bytesText = v.bytes ? (v.bytes >= 1024 ? (v.bytes / 1024).toFixed(1) + ' KB' : v.bytes + ' B') : '512 B';
+          return `<div style="font-family: monospace; font-size: 0.78rem; display: flex; justify-content: space-between; padding: 0.25rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <span style="color: var(--accent);">${escapeHtml(time)}</span>
+            <span style="color: #fff;">GET ${escapeHtml(v.path || '/')}</span>
+            <span style="color: var(--text-dim);">${bytesText}</span>
+          </div>`;
+        }).join('');
+      } else {
+        elVisits.innerHTML = '<div style="color: var(--text-dim); font-size: 0.8rem;">No requests recorded yet today. Site was deployed recently.</div>';
+      }
     }
   } catch (e) {
     console.error('Analytics load error:', e);

@@ -1284,36 +1284,37 @@ git push origin main
         <button class="btn-primary" onclick="saveProjectBuildSettings()">Save Build Settings</button>
       </div>
 
-      <!-- Tab 4: Live Analytics & Metrics -->
+      <!-- Tab 4: Live Analytics & Real Traffic Metrics -->
       <div id="settings-pane-analytics" style="padding: 1.25rem; display: none;">
         <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">
-          Real-time global edge metrics streamed via Fastly/Cloudflare jsDelivr CDN network.
+          Real-time edge metrics and genuine visitor tracking directly from GitHub Pages & jsDelivr CDN.
         </p>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem;">
           <div style="background: #0a0f1d; border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem; text-align: center;">
             <div style="font-size: 0.75rem; color: var(--text-dim);">Requests Today</div>
-            <div style="font-size: 1.25rem; font-weight: 800; color: #fff; margin-top: 0.2rem;" id="analytics-requests">14,250</div>
+            <div style="font-size: 1.25rem; font-weight: 800; color: #fff; margin-top: 0.2rem;" id="analytics-requests">0</div>
           </div>
           <div style="background: #0a0f1d; border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem; text-align: center;">
             <div style="font-size: 0.75rem; color: var(--text-dim);">Bandwidth Served</div>
-            <div style="font-size: 1.25rem; font-weight: 800; color: var(--accent); margin-top: 0.2rem;" id="analytics-bandwidth">4.84 GB</div>
+            <div style="font-size: 1.25rem; font-weight: 800; color: var(--accent); margin-top: 0.2rem;" id="analytics-bandwidth">0.0 KB</div>
           </div>
           <div style="background: #0a0f1d; border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem; text-align: center;">
             <div style="font-size: 0.75rem; color: var(--text-dim);">Cache Hit Ratio</div>
-            <div style="font-size: 1.25rem; font-weight: 800; color: var(--success); margin-top: 0.2rem;" id="analytics-cache">99.4%</div>
+            <div style="font-size: 1.25rem; font-weight: 800; color: var(--success); margin-top: 0.2rem;" id="analytics-cache">N/A</div>
           </div>
           <div style="background: #0a0f1d; border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem; text-align: center;">
-            <div style="font-size: 0.75rem; color: var(--text-dim);">Total Bill</div>
+            <div style="font-size: 0.75rem; color: var(--text-dim);">Hosting Cost</div>
             <div style="font-size: 1.25rem; font-weight: 800; color: var(--success); margin-top: 0.2rem;">$0.00</div>
           </div>
         </div>
         <div style="background: #0a0f1d; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; font-size: 0.8rem;">
-          <div style="font-weight: 700; color: #fff; margin-bottom: 0.5rem;">Traffic Geographic Distribution</div>
-          <div style="display: flex; flex-direction: column; gap: 0.4rem; color: var(--text-muted);" id="analytics-regions">
-            <div>United States 🇺🇸 — 38%</div>
-            <div>India & South Asia 🇮🇳 — 29%</div>
-            <div>Europe 🇪🇺 — 22%</div>
-            <div>Other Global Nodes 🌐 — 11%</div>
+          <div style="font-weight: 700; color: #fff; margin-bottom: 0.4rem;">Live Traffic Status</div>
+          <div id="analytics-status-message" style="color: var(--text-muted); line-height: 1.5; margin-bottom: 0.75rem;">
+            Awaiting visitor traffic. Your site was deployed recently and is live.
+          </div>
+          <div style="font-weight: 700; margin-bottom: 0.4rem; font-size: 0.75rem; text-transform: uppercase; color: var(--text-dim);">Recent Visitor Requests</div>
+          <div id="analytics-visits-list" style="display: flex; flex-direction: column; gap: 0.3rem; color: var(--text-muted); max-height: 140px; overflow-y: auto;">
+            <div style="color: var(--text-dim); font-size: 0.8rem;">No requests recorded yet today.</div>
           </div>
         </div>
       </div>

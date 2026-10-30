@@ -126,7 +126,14 @@
           }
         ]
       }
-    ]
+    ],
+    "analytics": {
+      "requestsToday": 0,
+      "totalRequests": 0,
+      "bytesServed": 0,
+      "lastResetDate": "2026-10-30",
+      "visits": []
+    }
   },
   {
     "id": "proj_demo1",
@@ -160,6 +167,13 @@
         "path": "src/contact.html",
         "content": "<!DOCTYPE html><html><body><h1>Contact Us</h1></body></html>"
       }
-    ]
+    ],
+    "analytics": {
+      "requestsToday": 0,
+      "totalRequests": 0,
+      "bytesServed": 0,
+      "lastResetDate": "2026-10-30",
+      "visits": []
+    }
   }
 ]
