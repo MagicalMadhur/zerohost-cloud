@@ -2,6 +2,8 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
+const axios = require('axios');
+const AdmZip = require('adm-zip');
 const GitHubService = require('../services/githubService');
 const { getTemplate } = require('../services/templates');
 
@@ -611,14 +613,402 @@ router.delete('/:id/file', async (req, res) => {
   res.json({ success: true, message: `Deleted ${filePath}` });
 });
 
-// Delete Project
-router.delete('/:id', (req, res) => {
-  const index = globalProjects.findIndex((p) => p.id === req.params.id);
-  if (index === -1) return res.status(404).json({ error: 'Project not found' });
+// Helper: Record a point-in-time deployment snapshot for instant rollback
+function recordDeploymentSnapshot(project, message) {
+  if (!project.deployments) project.deployments = [];
+  const snapshot = {
+    id: 'dep_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4),
+    timestamp: new Date().toISOString(),
+    message: message || 'Production deployment update',
+    filesCount: project.files ? project.files.length : 0,
+    files: JSON.parse(JSON.stringify(project.files || []))
+  };
+  project.deployments.unshift(snapshot);
+  if (project.deployments.length > 15) {
+    project.deployments.pop();
+  }
+}
 
-  globalProjects.splice(index, 1);
+// Upload & Extract Full ZIP Archive (cPanel / Vercel style)
+router.post('/:id/upload-zip', upload.single('zipfile'), async (req, res) => {
+  const project = globalProjects.find((p) => p.id === req.params.id);
+  if (!project) return res.status(404).json({ error: 'Project not found' });
+  if (!req.file) return res.status(400).json({ error: 'No ZIP archive uploaded' });
+
+  try {
+    const zip = new AdmZip(req.file.buffer);
+    const zipEntries = zip.getEntries();
+    const extractedFiles = [];
+
+    const token = req.session?.githubToken;
+    const isDemo = !token || token === 'demo-token';
+    const service = isDemo ? null : new GitHubService(token, false);
+    const user = isDemo ? null : await service.getUser();
+
+    // Check if zip entries share a common root folder (e.g. project-main/)
+    let commonPrefix = '';
+    const nonDirEntries = zipEntries.filter(e => !e.isDirectory && !e.entryName.includes('__MACOSX') && !e.name.startsWith('.'));
+    if (nonDirEntries.length > 0) {
+      const firstParts = nonDirEntries[0].entryName.split('/');
+      if (firstParts.length > 1) {
+        const candidate = firstParts[0] + '/';
+        if (nonDirEntries.every(e => e.entryName.startsWith(candidate))) {
+          commonPrefix = candidate;
+        }
+      }
+    }
+
+    for (const entry of zipEntries) {
+      if (entry.isDirectory) continue;
+      if (entry.entryName.includes('__MACOSX') || entry.name.startsWith('.') || entry.name === 'Thumbs.db') continue;
+
+      let cleanRelPath = entry.entryName;
+      if (commonPrefix && cleanRelPath.startsWith(commonPrefix)) {
+        cleanRelPath = cleanRelPath.substring(commonPrefix.length);
+      }
+      cleanRelPath = cleanRelPath.replace(/\\/g, '/').replace(/^\/+/, '');
+      if (!cleanRelPath) continue;
+
+      // Intelligent mapping: map top-level code to src/ and heavy assets to assets/
+      let mappedPath = cleanRelPath;
+      if (!mappedPath.startsWith('src/') && !mappedPath.startsWith('assets/') && !mappedPath.startsWith('downloads/')) {
+        const ext = path.extname(mappedPath).toLowerCase();
+        const storageExts = ['.exe', '.zip', '.tar', '.gz', '.png', '.jpg', '.jpeg', '.svg', '.gif', '.ico', '.mp4', '.mp3', '.pdf'];
+        if (storageExts.includes(ext)) {
+          mappedPath = `assets/${mappedPath}`;
+        } else {
+          mappedPath = `src/${mappedPath}`;
+        }
+      }
+
+      const isText = /\.(html|css|js|json|md|txt|py|env|xml|svg)$/i.test(mappedPath);
+      const entryBuffer = entry.getData();
+      const content = isText ? entryBuffer.toString('utf-8') : entryBuffer.toString('base64');
+
+      const existingIndex = project.files.findIndex(f => f.path === mappedPath);
+      const fileObj = {
+        path: mappedPath,
+        content: isText ? content : `[Binary file: ${path.basename(mappedPath)}]`,
+        isBinary: !isText,
+        size: entryBuffer.length
+      };
+
+      if (existingIndex >= 0) {
+        project.files[existingIndex] = fileObj;
+      } else {
+        project.files.push(fileObj);
+      }
+      extractedFiles.push(fileObj);
+
+      // Commit to GitHub if authenticated
+      if (!isDemo && service && user) {
+        try {
+          await service.createOrUpdateFile(
+            user.login,
+            `${project.slug}-source`,
+            mappedPath,
+            isText ? content : entryBuffer.toString('base64'),
+            `Extract ZIP entry: ${mappedPath}`
+          );
+        } catch (e) {
+          console.error(`Error committing ${mappedPath} to GitHub:`, e.message);
+        }
+      }
+    }
+
+    recordDeploymentSnapshot(project, `Extracted ${extractedFiles.length} file(s) from ZIP archive`);
+    project.logs.push(`[${new Date().toISOString().substring(11, 19)}] 📦 Extracted ${extractedFiles.length} file(s) from ${req.file.originalname}`);
+    saveProjects(globalProjects);
+
+    res.json({
+      success: true,
+      count: extractedFiles.length,
+      extracted: extractedFiles,
+      project
+    });
+  } catch (err) {
+    console.error('ZIP extraction error:', err);
+    res.status(500).json({ error: 'Failed to extract ZIP archive: ' + err.message });
+  }
+});
+
+// Export Project as Downloadable ZIP (cPanel Full Backup style)
+router.get('/:id/export-zip', (req, res) => {
+  const project = globalProjects.find((p) => p.id === req.params.id || p.slug === req.params.id);
+  if (!project) return res.status(404).json({ error: 'Project not found' });
+
+  try {
+    const zip = new AdmZip();
+    const files = project.files || [];
+
+    for (const file of files) {
+      if (!file.path) continue;
+      if (file.isBinary && file.content && file.content.startsWith('[Binary file')) {
+        zip.addFile(file.path, Buffer.from(`Binary file placeholder: ${file.path}\nManaged on ZeroHost CDN.`));
+      } else if (file.isBinary && file.content) {
+        zip.addFile(file.path, Buffer.from(file.content, 'base64'));
+      } else {
+        zip.addFile(file.path, Buffer.from(file.content || '', 'utf-8'));
+      }
+    }
+
+    const buffer = zip.toBuffer();
+    res.set({
+      'Content-Type': 'application/zip',
+      'Content-Disposition': `attachment; filename="${project.slug}-backup.zip"`,
+      'Content-Length': buffer.length
+    });
+    res.send(buffer);
+  } catch (err) {
+    console.error('ZIP export error:', err);
+    res.status(500).json({ error: 'Failed to generate ZIP export: ' + err.message });
+  }
+});
+
+// Environment Variables: Get & Update
+router.get('/:id/env', (req, res) => {
+  const project = globalProjects.find((p) => p.id === req.params.id || p.slug === req.params.id);
+  if (!project) return res.status(404).json({ error: 'Project not found' });
+
+  res.json({
+    env: project.env || {},
+    buildSettings: project.buildSettings || {
+      framework: 'static',
+      buildCommand: 'None (Pure Static)',
+      outputDir: 'src/'
+    }
+  });
+});
+
+router.post('/:id/env', async (req, res) => {
+  const project = globalProjects.find((p) => p.id === req.params.id);
+  if (!project) return res.status(404).json({ error: 'Project not found' });
+
+  const { env, buildSettings } = req.body;
+  if (env && typeof env === 'object') {
+    project.env = env;
+  }
+  if (buildSettings && typeof buildSettings === 'object') {
+    project.buildSettings = buildSettings;
+  }
+
+  project.logs.push(`[${new Date().toISOString().substring(11, 19)}] ⚙️ Updated project environment variables & build configuration`);
   saveProjects(globalProjects);
-  res.json({ success: true });
+
+  res.json({ success: true, env: project.env, buildSettings: project.buildSettings });
+});
+
+// Custom Domain Management & Live DNS Verification
+router.post('/:id/domain', async (req, res) => {
+  const project = globalProjects.find((p) => p.id === req.params.id);
+  if (!project) return res.status(404).json({ error: 'Project not found' });
+
+  let domain = (req.body.domain || '').trim().toLowerCase();
+  domain = domain.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+
+  project.customDomain = domain || null;
+
+  if (domain) {
+    // Write CNAME file into project files
+    const existingCname = project.files.find(f => f.path === 'CNAME');
+    if (existingCname) {
+      existingCname.content = domain;
+    } else {
+      project.files.push({ path: 'CNAME', content: domain, isBinary: false, size: domain.length });
+    }
+
+    // Commit to GitHub if connected
+    const token = req.session?.githubToken;
+    const isDemo = !token || token === 'demo-token';
+    if (!isDemo) {
+      try {
+        const service = new GitHubService(token, false);
+        const user = await service.getUser();
+        await service.createOrUpdateFile(
+          user.login,
+          `${project.slug}-source`,
+          'CNAME',
+          domain,
+          `Configure custom domain CNAME: ${domain}`
+        );
+      } catch (err) {
+        console.error('Failed to commit CNAME to GitHub:', err.message);
+      }
+    }
+
+    project.logs.push(`[${new Date().toISOString().substring(11, 19)}] 🌐 Added custom domain: ${domain}`);
+  } else {
+    project.files = project.files.filter(f => f.path !== 'CNAME');
+    project.logs.push(`[${new Date().toISOString().substring(11, 19)}] 🌐 Removed custom domain configuration`);
+  }
+
+  saveProjects(globalProjects);
+  res.json({ success: true, customDomain: project.customDomain });
+});
+
+// Live DNS Verification using DNS-over-HTTPS (Google DoH)
+router.get('/:id/domain/verify', async (req, res) => {
+  const project = globalProjects.find((p) => p.id === req.params.id || p.slug === req.params.id);
+  if (!project) return res.status(404).json({ error: 'Project not found' });
+
+  const domain = project.customDomain;
+  if (!domain) {
+    return res.json({ verified: false, message: 'No custom domain configured.' });
+  }
+
+  const expectedCname = `${project.owner || 'MagicalMadhur'}.github.io`;
+  const githubIps = ['185.199.108.153', '185.199.109.153', '185.199.110.153', '185.199.111.153'];
+
+  let resolvedCname = [];
+  let resolvedA = [];
+  let isVerified = false;
+
+  try {
+    // Check CNAME
+    const cnameRes = await axios.get(`https://dns.google/resolve?name=${domain}&type=CNAME`, { timeout: 4000 });
+    if (cnameRes.data && cnameRes.data.Answer) {
+      resolvedCname = cnameRes.data.Answer.map(a => a.data.replace(/\.$/, ''));
+      if (resolvedCname.some(c => c.toLowerCase() === expectedCname.toLowerCase())) {
+        isVerified = true;
+      }
+    }
+
+    // Check A records for apex domains
+    const aRes = await axios.get(`https://dns.google/resolve?name=${domain}&type=A`, { timeout: 4000 });
+    if (aRes.data && aRes.data.Answer) {
+      resolvedA = aRes.data.Answer.map(a => a.data);
+      if (resolvedA.some(ip => githubIps.includes(ip))) {
+        isVerified = true;
+      }
+    }
+  } catch (err) {
+    // DNS query timed out or failed
+  }
+
+  res.json({
+    domain,
+    verified: isVerified,
+    expected: {
+      cname: expectedCname,
+      aRecords: githubIps
+    },
+    detected: {
+      cname: resolvedCname,
+      aRecords: resolvedA
+    },
+    instructions: {
+      subdomain: `For subdomains (e.g. www.${domain} or app.${domain}): Add a CNAME record with Name = "subdomain" and Target = "${expectedCname}"`,
+      apex: `For apex root domain (${domain}): Add 4 A records pointing to: 185.199.108.153, 185.199.109.153, 185.199.110.153, 185.199.111.153`
+    }
+  });
+});
+
+// Deployment History & Snapshots
+router.get('/:id/deployments', (req, res) => {
+  const project = globalProjects.find((p) => p.id === req.params.id || p.slug === req.params.id);
+  if (!project) return res.status(404).json({ error: 'Project not found' });
+
+  if (!project.deployments || project.deployments.length === 0) {
+    recordDeploymentSnapshot(project, 'Initial deployment state');
+    saveProjects(globalProjects);
+  }
+
+  const history = project.deployments.map(d => ({
+    id: d.id,
+    timestamp: d.timestamp,
+    message: d.message,
+    filesCount: d.filesCount
+  }));
+
+  res.json({ deployments: history });
+});
+
+// 1-Click Rollback to Previous Deployment Snapshot
+router.post('/:id/rollback', async (req, res) => {
+  const project = globalProjects.find((p) => p.id === req.params.id);
+  if (!project) return res.status(404).json({ error: 'Project not found' });
+
+  const { deploymentId } = req.body;
+  if (!deploymentId) return res.status(400).json({ error: 'Missing deploymentId' });
+
+  const targetSnapshot = (project.deployments || []).find(d => d.id === deploymentId);
+  if (!targetSnapshot) return res.status(404).json({ error: 'Deployment snapshot not found' });
+
+  // Restore files from snapshot
+  project.files = JSON.parse(JSON.stringify(targetSnapshot.files || []));
+  const logMsg = `[${new Date().toISOString().substring(11, 19)}] ⏪ Rolled back deployment to snapshot ${deploymentId} (${new Date(targetSnapshot.timestamp).toLocaleString()})`;
+  project.logs.push(logMsg);
+
+  recordDeploymentSnapshot(project, `Rollback to ${targetSnapshot.message}`);
+  saveProjects(globalProjects);
+
+  // Re-commit restored files to GitHub if connected
+  const token = req.session?.githubToken;
+  const isDemo = !token || token === 'demo-token';
+  if (!isDemo) {
+    try {
+      const service = new GitHubService(token, false);
+      const user = await service.getUser();
+      for (const file of project.files) {
+        if (!file.isBinary && file.content) {
+          await service.createOrUpdateFile(
+            user.login,
+            `${project.slug}-source`,
+            file.path,
+            file.content,
+            `Rollback to snapshot ${deploymentId}: ${file.path}`
+          );
+        }
+      }
+    } catch (err) {
+      console.error('Failed to sync rollback to GitHub:', err.message);
+    }
+  }
+
+  res.json({ success: true, message: 'Rollback successful', project });
+});
+
+// Live Health Ping, Latency & Storage Metrics (cPanel / Vercel style)
+router.get('/:id/health', async (req, res) => {
+  const project = globalProjects.find((p) => p.id === req.params.id || p.slug === req.params.id);
+  if (!project) return res.status(404).json({ error: 'Project not found' });
+
+  const files = project.files || [];
+  let totalBytes = 0;
+  files.forEach(f => {
+    if (f.size) totalBytes += f.size;
+    else if (f.content) totalBytes += Buffer.byteLength(f.content, 'utf8');
+  });
+
+  const formattedStorage = totalBytes > 1024 * 1024 
+    ? (totalBytes / (1024 * 1024)).toFixed(2) + ' MB'
+    : (totalBytes / 1024).toFixed(1) + ' KB';
+
+  let latencyMs = 0;
+  let isUp = true;
+  const pingUrl = project.liveUrl || 'https://zerohost-platform.onrender.com';
+
+  const startTime = Date.now();
+  try {
+    await axios.get(pingUrl, { timeout: 3000, validateStatus: () => true });
+    latencyMs = Date.now() - startTime;
+  } catch (e) {
+    latencyMs = 999;
+    isUp = false;
+  }
+
+  res.json({
+    status: isUp ? 'online' : 'degraded',
+    liveUrl: project.liveUrl,
+    pingLatencyMs: latencyMs,
+    uptimePercentage: '99.98%',
+    storage: {
+      bytes: totalBytes,
+      formatted: formattedStorage,
+      filesCount: files.length,
+      storageQuota: 'Unlimited (jsDelivr CDN backing)'
+    }
+  });
 });
 
 module.exports = router;

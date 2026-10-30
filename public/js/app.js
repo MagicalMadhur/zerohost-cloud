@@ -249,7 +249,12 @@ function setupDropzone() {
     dropzone.style.borderColor = 'rgba(255, 255, 255, 0.15)';
     dropzone.style.background = 'rgba(0, 0, 0, 0.15)';
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      await uploadFilesToProject(e.dataTransfer.files, 'assets');
+      const firstFile = e.dataTransfer.files[0];
+      if (firstFile.name.endsWith('.zip')) {
+        await uploadZipFileToProject(firstFile);
+      } else {
+        await uploadFilesToProject(e.dataTransfer.files, 'assets');
+      }
     }
   });
 }
@@ -553,13 +558,21 @@ function renderProjects(projects) {
           <span class="meta-key">Hosting Cost:</span>
           <span class="meta-val" style="color: var(--success); font-weight: bold;">$0.00 / mo</span>
         </div>
+        ${p.customDomain ? `
+        <div class="meta-row">
+          <span class="meta-key">Domain:</span>
+          <span class="meta-val"><a href="https://${p.customDomain}" target="_blank" style="color: var(--accent); text-decoration: none;">🌐 ${p.customDomain}</a></span>
+        </div>
+        ` : ''}
       </div>
 
       <div class="project-actions">
         <a href="${p.liveUrl || `/api/projects/${p.id}/preview`}" target="_blank" class="btn-open-live" style="background: rgba(16, 185, 129, 0.15); color: var(--success); border-color: rgba(16, 185, 129, 0.3);">👁️ Preview</a>
         <a href="${p.liveUrl}" target="_blank" class="btn-card-action" title="Open Public Gateway / Pages">Pages ↗</a>
-        <button class="btn-card-action" onclick="openProjectInFileManager('${p.id}')">📂 Files</button>
+        <button class="btn-card-action" onclick="openProjectInFileManager('${p.id}')" title="Site File Manager">📂 Files</button>
         <button class="btn-card-action" onclick="openProjectLogs('${p.id}')" title="View Deployment Logs & Diagnostics">📜 Logs</button>
+        <button class="btn-card-action" onclick="openProjectSettings('${p.id}')" title="Environment Variables & Custom Domain">⚙️</button>
+        <button class="btn-card-action" onclick="openProjectHistory('${p.id}')" title="Deployment History & Instant Rollback">⏪</button>
         <button class="btn-card-action" style="color: var(--danger);" onclick="deleteProject('${p.id}')" title="Delete Deployment">🗑️</button>
       </div>
     </div>
@@ -1272,5 +1285,356 @@ async function copyProjectLogs() {
     showNotification('📋 Deployment logs copied to clipboard!', 'success');
   } catch (err) {
     showNotification('Copied to clipboard!', 'info');
+  }
+}
+
+// =============================================================================
+// ZIP Archive Upload & Full Project Export (cPanel / Vercel style)
+// =============================================================================
+
+function triggerZipUpload() {
+  const input = document.getElementById('filemanager-zip-input');
+  if (input) input.click();
+}
+
+async function handleZipFileInput(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  await uploadZipFileToProject(file);
+  event.target.value = '';
+}
+
+async function uploadZipFileToProject(file) {
+  const projectId = state.activeFileManagerProjectId;
+  if (!projectId) {
+    showNotification('Please select a project first.', 'error');
+    return;
+  }
+  showNotification(`📦 Uploading & extracting ${file.name}...`, 'info');
+  const formData = new FormData();
+  formData.append('zipfile', file);
+
+  try {
+    const res = await fetch(`/api/projects/${projectId}/upload-zip`, {
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to extract ZIP');
+
+    showNotification(`🎉 Extracted ${data.count} file(s) from ZIP archive!`, 'success');
+    const idx = state.projects.findIndex(p => p.id === projectId);
+    if (idx !== -1 && data.project) {
+      state.projects[idx] = data.project;
+    }
+    loadProjectForFileManager();
+  } catch (err) {
+    showNotification(`ZIP upload error: ${err.message}`, 'error');
+  }
+}
+
+function exportProjectZip() {
+  const projectId = state.activeFileManagerProjectId;
+  if (!projectId) {
+    showNotification('Please select a project first.', 'error');
+    return;
+  }
+  showNotification('📦 Generating ZIP backup download...', 'info');
+  window.location.href = `/api/projects/${projectId}/export-zip`;
+}
+
+// =============================================================================
+// Project Settings, Environment Variables & Custom Domain
+// =============================================================================
+
+state.activeSettingsProjectId = null;
+state.currentEnvVars = {};
+
+async function openProjectSettings(projectId) {
+  state.activeSettingsProjectId = projectId;
+  const project = state.projects.find(p => p.id === projectId);
+  if (!project) return;
+
+  const modal = document.getElementById('project-settings-modal');
+  const title = document.getElementById('settings-modal-title');
+  if (title) title.textContent = `Settings — ${project.name || project.slug}`;
+  if (modal) modal.style.display = 'flex';
+
+  switchSettingsTab('env');
+
+  // Load domain
+  const domainInput = document.getElementById('setting-domain-input');
+  if (domainInput) domainInput.value = project.customDomain || '';
+  const domainBox = document.getElementById('domain-verification-box');
+  if (domainBox) domainBox.style.display = 'none';
+
+  // Load build settings & env
+  try {
+    const res = await fetch(`/api/projects/${projectId}/env`);
+    if (res.ok) {
+      const data = await res.json();
+      state.currentEnvVars = data.env || {};
+      renderEnvVarsRows(state.currentEnvVars);
+      if (data.buildSettings) {
+        const fw = document.getElementById('setting-framework-select');
+        const out = document.getElementById('setting-output-dir');
+        const cmd = document.getElementById('setting-build-cmd');
+        if (fw) fw.value = data.buildSettings.framework || 'static';
+        if (out) out.value = data.buildSettings.outputDir || 'src/';
+        if (cmd) cmd.value = data.buildSettings.buildCommand || '';
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load project env settings:', err);
+  }
+}
+
+function closeProjectSettingsModal() {
+  const modal = document.getElementById('project-settings-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function switchSettingsTab(tab) {
+  const tabs = ['env', 'domain', 'build'];
+  tabs.forEach(t => {
+    const btn = document.getElementById(`tab-btn-${t}`);
+    const pane = document.getElementById(`settings-pane-${t}`);
+    if (btn) btn.classList.toggle('active', t === tab);
+    if (pane) pane.style.display = (t === tab) ? 'block' : 'none';
+  });
+}
+
+function renderEnvVarsRows(envMap) {
+  const container = document.getElementById('env-vars-container');
+  if (!container) return;
+  container.innerHTML = '';
+  const keys = Object.keys(envMap);
+  if (keys.length === 0) {
+    addEnvVarRow('', '');
+    return;
+  }
+  keys.forEach(k => {
+    addEnvVarRow(k, envMap[k]);
+  });
+}
+
+function addEnvVarRow(key = '', val = '') {
+  const container = document.getElementById('env-vars-container');
+  if (!container) return;
+  const row = document.createElement('div');
+  row.className = 'env-var-row';
+  row.style.cssText = 'display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem;';
+  row.innerHTML = `
+    <input type="text" class="form-input env-key-input" placeholder="KEY (e.g. API_SECRET)" value="${escapeHtml(key)}" style="flex: 1; font-family: monospace; font-size: 0.85rem;">
+    <input type="password" class="form-input env-val-input" placeholder="VALUE" value="${escapeHtml(val)}" style="flex: 1.5; font-family: monospace; font-size: 0.85rem;">
+    <button type="button" class="btn-card-action" onclick="toggleEnvMask(this)" title="Show/Hide value" style="padding: 0.4rem 0.6rem;">👁️</button>
+    <button type="button" class="btn-card-action" onclick="removeEnvVarRow(this)" title="Delete variable" style="color: var(--danger); padding: 0.4rem 0.6rem;">✕</button>
+  `;
+  container.appendChild(row);
+}
+
+function removeEnvVarRow(btn) {
+  const row = btn.closest('.env-var-row');
+  if (row) row.remove();
+}
+
+function toggleEnvMask(btn) {
+  const row = btn.closest('.env-var-row');
+  if (!row) return;
+  const input = row.querySelector('.env-val-input');
+  if (input) {
+    input.type = (input.type === 'password') ? 'text' : 'password';
+  }
+}
+
+async function saveProjectEnvVars() {
+  const projectId = state.activeSettingsProjectId;
+  if (!projectId) return;
+
+  const rows = document.querySelectorAll('#env-vars-container .env-var-row');
+  const newEnv = {};
+  rows.forEach(r => {
+    const k = r.querySelector('.env-key-input').value.trim();
+    const v = r.querySelector('.env-val-input').value.trim();
+    if (k) newEnv[k] = v;
+  });
+
+  try {
+    const res = await fetch(`/api/projects/${projectId}/env`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ env: newEnv })
+    });
+    if (!res.ok) throw new Error('Failed to save environment variables');
+    showNotification('✅ Environment variables saved securely!', 'success');
+  } catch (err) {
+    showNotification(`Error saving env vars: ${err.message}`, 'error');
+  }
+}
+
+async function saveProjectCustomDomain() {
+  const projectId = state.activeSettingsProjectId;
+  if (!projectId) return;
+  const domain = document.getElementById('setting-domain-input').value.trim();
+
+  try {
+    const res = await fetch(`/api/projects/${projectId}/domain`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ domain })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to update custom domain');
+
+    showNotification(domain ? `🌐 Domain ${domain} saved & CNAME configured!` : '🌐 Custom domain removed.', 'success');
+    const project = state.projects.find(p => p.id === projectId);
+    if (project) project.customDomain = domain || null;
+    renderProjects(state.projects);
+  } catch (err) {
+    showNotification(`Domain error: ${err.message}`, 'error');
+  }
+}
+
+async function verifyProjectDomainDNS() {
+  const projectId = state.activeSettingsProjectId;
+  if (!projectId) return;
+  const box = document.getElementById('domain-verification-box');
+  if (!box) return;
+
+  box.style.display = 'block';
+  box.innerHTML = '<div style="color: var(--text-dim);">🔍 Querying Google DNS over HTTPS for live records...</div>';
+
+  try {
+    const res = await fetch(`/api/projects/${projectId}/domain/verify`);
+    const data = await res.json();
+
+    if (!data.domain) {
+      box.innerHTML = '<div style="color: var(--danger);">⚠️ No domain configured yet. Enter a domain and click Save Domain first.</div>';
+      return;
+    }
+
+    const badge = data.verified 
+      ? '<span class="status-tag" style="background: rgba(16, 185, 129, 0.2); color: var(--success);"><span class="status-dot"></span> DNS Verified & Active</span>'
+      : '<span class="status-tag" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24;"><span class="status-dot" style="background: #fbbf24;"></span> DNS Propagation Pending</span>';
+
+    box.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+        <span style="font-weight: 700; color: #fff;">${escapeHtml(data.domain)}</span>
+        ${badge}
+      </div>
+      <div style="color: var(--text-muted); font-size: 0.8rem; line-height: 1.6; margin-bottom: 0.75rem;">
+        <strong>Detected CNAME:</strong> ${data.detected.cname.length > 0 ? data.detected.cname.join(', ') : 'None'}<br>
+        <strong>Detected A Records:</strong> ${data.detected.aRecords.length > 0 ? data.detected.aRecords.join(', ') : 'None'}
+      </div>
+      <div style="background: rgba(255, 255, 255, 0.05); padding: 0.6rem; border-radius: 6px; font-size: 0.75rem; color: #cbd5e1; line-height: 1.5;">
+        ${escapeHtml(data.instructions.subdomain)}<br>
+        ${escapeHtml(data.instructions.apex)}
+      </div>
+    `;
+  } catch (err) {
+    box.innerHTML = `<div style="color: var(--danger);">Verification check failed: ${err.message}</div>`;
+  }
+}
+
+async function saveProjectBuildSettings() {
+  const projectId = state.activeSettingsProjectId;
+  if (!projectId) return;
+
+  const framework = document.getElementById('setting-framework-select').value;
+  const outputDir = document.getElementById('setting-output-dir').value;
+  const buildCommand = document.getElementById('setting-build-cmd').value;
+
+  try {
+    const res = await fetch(`/api/projects/${projectId}/env`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        buildSettings: { framework, outputDir, buildCommand }
+      })
+    });
+    if (!res.ok) throw new Error('Failed to save build settings');
+    showNotification('⚙️ Build settings updated successfully!', 'success');
+  } catch (err) {
+    showNotification(`Error: ${err.message}`, 'error');
+  }
+}
+
+// =============================================================================
+// Deployment History & Instant Rollback
+// =============================================================================
+
+state.activeHistoryProjectId = null;
+
+async function openProjectHistory(projectId) {
+  state.activeHistoryProjectId = projectId;
+  const project = state.projects.find(p => p.id === projectId);
+  if (!project) return;
+
+  const modal = document.getElementById('project-history-modal');
+  const title = document.getElementById('history-modal-title');
+  if (title) title.textContent = `Deployments & Rollback — ${project.name || project.slug}`;
+  if (modal) modal.style.display = 'flex';
+
+  const list = document.getElementById('project-history-list');
+  if (list) list.innerHTML = '<div style="color: var(--text-dim); padding: 1rem;">🔄 Loading deployment history...</div>';
+
+  try {
+    const res = await fetch(`/api/projects/${projectId}/deployments`);
+    const data = await res.json();
+    const deployments = data.deployments || [];
+
+    if (deployments.length === 0) {
+      list.innerHTML = '<div style="color: var(--text-muted); padding: 1.5rem; text-align: center;">No previous deployment snapshots found yet.</div>';
+      return;
+    }
+
+    list.innerHTML = deployments.map((d, i) => `
+      <div class="run-card" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div style="font-weight: 700; color: #fff; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem;">
+            <span>${escapeHtml(d.message)}</span>
+            ${i === 0 ? '<span class="status-tag" style="background: rgba(16, 185, 129, 0.15); color: var(--success); font-size: 0.65rem;">CURRENT ACTIVE</span>' : ''}
+          </div>
+          <div style="font-size: 0.75rem; color: var(--text-dim); font-family: monospace;">
+            Snapshot #${d.id} • ${new Date(d.timestamp).toLocaleString()} • ${d.filesCount} files
+          </div>
+        </div>
+        <div>
+          ${i !== 0 ? `<button class="btn-card-action" onclick="rollbackToDeployment('${d.id}')" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: rgba(245, 158, 11, 0.3); font-size: 0.75rem; padding: 0.3rem 0.75rem;">⏪ Rollback</button>` : ''}
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    list.innerHTML = `<div style="color: var(--danger); padding: 1rem;">Failed to load history: ${err.message}</div>`;
+  }
+}
+
+function closeProjectHistoryModal() {
+  const modal = document.getElementById('project-history-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function rollbackToDeployment(deploymentId) {
+  const projectId = state.activeHistoryProjectId;
+  if (!projectId) return;
+
+  if (!confirm('Are you sure you want to rollback to this deployment snapshot? This will restore files and redeploy.')) return;
+
+  showNotification('⏪ Rolling back deployment files...', 'info');
+
+  try {
+    const res = await fetch(`/api/projects/${projectId}/rollback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deploymentId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Rollback failed');
+
+    showNotification('🎉 Successfully rolled back to selected deployment!', 'success');
+    closeProjectHistoryModal();
+    await loadProjects();
+  } catch (err) {
+    showNotification(`Rollback error: ${err.message}`, 'error');
   }
 }

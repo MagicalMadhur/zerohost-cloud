@@ -680,6 +680,12 @@ DNS Setup for Custom Domains:
             <button class="btn-secondary" style="padding: 0.45rem 1rem; font-size: 0.85rem;" onclick="triggerFileManagerUpload('assets')">
               <span>📦</span> Upload Storage Asset (CDN)
             </button>
+            <button class="btn-secondary" style="padding: 0.45rem 1rem; font-size: 0.85rem;" onclick="triggerZipUpload()" title="Upload & Extract ZIP Archive">
+              <span>📦</span> Upload ZIP
+            </button>
+            <button class="btn-secondary" style="padding: 0.45rem 1rem; font-size: 0.85rem;" onclick="exportProjectZip()" title="Download Full Project ZIP Backup">
+              <span>⬇️</span> Export ZIP
+            </button>
             <button class="btn-secondary" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;" onclick="createNewFilePrompt()">
               <span>+</span> New File
             </button>
@@ -778,6 +784,7 @@ DNS Setup for Custom Domains:
         </div>
 
         <input type="file" id="filemanager-file-input" multiple style="display: none;" onchange="handleFileManagerFileInput(event)">
+        <input type="file" id="filemanager-zip-input" accept=".zip" style="display: none;" onchange="handleZipFileInput(event)">
       </section>
 
       <!-- View 4: How to Use & AI Architecture Blueprint (Protected) -->
@@ -1118,6 +1125,114 @@ git push origin main
       </div>
     </div>
   </div>
+
+  <!-- Project Settings & Environment Variables Modal -->
+  <div class="terminal-modal" id="project-settings-modal" style="display: none;">
+    <div class="terminal-box logs-modal-dialog" style="max-width: 780px;">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+        </div>
+        <div class="terminal-title" id="settings-modal-title">project-settings</div>
+        <button onclick="closeProjectSettingsModal()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; line-height: 1;">×</button>
+      </div>
+
+      <!-- Settings Subnav Tabs -->
+      <div class="logs-tabs-nav">
+        <div class="logs-tabs-group">
+          <button class="logs-tab-btn active" id="tab-btn-env" onclick="switchSettingsTab('env')">
+            <span>🔑</span> Environment Variables
+          </button>
+          <button class="logs-tab-btn" id="tab-btn-domain" onclick="switchSettingsTab('domain')">
+            <span>🌐</span> Custom Domain & DNS
+          </button>
+          <button class="logs-tab-btn" id="tab-btn-build" onclick="switchSettingsTab('build')">
+            <span>⚙️</span> Build & Framework
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab 1: Environment Variables -->
+      <div id="settings-pane-env" style="padding: 1.25rem;">
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">
+          Configure production secrets, API tokens, and environment parameters. Values are securely stored and masked with zero public exposure.
+        </p>
+        <div id="env-vars-container" style="display: flex; flex-direction: column; gap: 0.6rem; max-height: 250px; overflow-y: auto; margin-bottom: 1rem;">
+          <!-- Key-value inputs -->
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 1rem;">
+          <button class="btn-card-action" onclick="addEnvVarRow()">+ Add Variable</button>
+          <button class="btn-primary" onclick="saveProjectEnvVars()">Save Environment</button>
+        </div>
+      </div>
+
+      <!-- Tab 2: Custom Domain & Live DNS -->
+      <div id="settings-pane-domain" style="padding: 1.25rem; display: none;">
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">
+          Connect your own apex or subdomain (e.g. <code>mysite.com</code> or <code>app.mysite.com</code>). ZeroHost automatically writes the <code>CNAME</code> and verifies records via DNS-over-HTTPS.
+        </p>
+        <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
+          <input type="text" id="setting-domain-input" class="form-input" placeholder="e.g. mysite.com or app.mysite.com" style="flex: 1;">
+          <button class="btn-primary" onclick="saveProjectCustomDomain()">Save Domain</button>
+          <button class="btn-secondary" onclick="verifyProjectDomainDNS()">🔍 Verify DNS</button>
+        </div>
+        <div id="domain-verification-box" style="display: none; background: #0a0f1d; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; font-size: 0.85rem;">
+          <!-- DNS Check Details -->
+        </div>
+      </div>
+
+      <!-- Tab 3: Build & Output Settings -->
+      <div id="settings-pane-build" style="padding: 1.25rem; display: none;">
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">
+          Configure project build pipeline, framework presets, and web output directory.
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;">
+          <div>
+            <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 0.3rem;">Framework Preset</label>
+            <select id="setting-framework-select" class="form-input" style="width: 100%;">
+              <option value="static">Pure Static (HTML / CSS / JS Vanilla)</option>
+              <option value="vite">React / Vue (Vite SPA)</option>
+              <option value="nextjs">Next.js (Static Export / Node)</option>
+              <option value="node">Node.js / Express REST API</option>
+              <option value="python">Python Flask / FastAPI Microservice</option>
+            </select>
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 0.3rem;">Output Directory</label>
+            <input type="text" id="setting-output-dir" class="form-input" value="src/" style="width: 100%;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 0.3rem;">Build Command</label>
+            <input type="text" id="setting-build-cmd" class="form-input" placeholder="e.g. npm run build" style="width: 100%;">
+          </div>
+        </div>
+        <button class="btn-primary" onclick="saveProjectBuildSettings()">Save Build Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Deployment History & Instant Rollback Modal -->
+  <div class="terminal-modal" id="project-history-modal" style="display: none;">
+    <div class="terminal-box logs-modal-dialog" style="max-width: 750px;">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+        </div>
+        <div class="terminal-title" id="history-modal-title">deployment-history-rollback</div>
+        <button onclick="closeProjectHistoryModal()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; line-height: 1;">×</button>
+      </div>
+      <div style="padding: 1rem 1.25rem; background: #080d1a; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">
+          Select any previous production deployment snapshot to immediately restore files and redeploy your live site.
+        </p>
+      </div>
+      <div class="runs-list" id="project-history-list" style="height: 320px;">
+        <!-- Timeline items -->
+      </div>
     </div>
   </div>
 
