@@ -535,12 +535,19 @@ function renderProjects(projects) {
     return;
   }
 
-  container.innerHTML = projects.map(p => `
+  container.innerHTML = projects.map(p => {
+    const statusText = p.status || 'Online';
+    const statusClass = p.status === 'Building' ? 'status-building' : (p.status === 'Failed' ? 'status-failed' : 'status-online');
+
+    return `
     <div class="project-card">
       <div class="project-header">
-        <span class="project-name">${p.name}</span>
-        <span class="status-tag">
-          <span class="status-dot"></span> Online
+        <div class="project-identity">
+          <span class="project-name">${escapeHtml(p.name || p.slug)}</span>
+          <span class="project-slug-badge">${escapeHtml(p.slug)}</span>
+        </div>
+        <span class="status-tag ${statusClass}">
+          <span class="status-dot"></span> ${escapeHtml(statusText)}
         </span>
       </div>
 
@@ -563,23 +570,49 @@ function renderProjects(projects) {
         </div>
         ${p.customDomain ? `
         <div class="meta-row">
-          <span class="meta-key">Domain:</span>
-          <span class="meta-val"><a href="https://${p.customDomain}" target="_blank" style="color: var(--accent); text-decoration: none;">🌐 ${p.customDomain}</a></span>
+          <span class="meta-key">Custom Domain:</span>
+          <span class="meta-val"><a href="https://${escapeHtml(p.customDomain)}" target="_blank" style="color: var(--accent); text-decoration: none;">🌐 ${escapeHtml(p.customDomain)}</a></span>
         </div>
         ` : ''}
       </div>
 
-      <div class="project-actions">
-        <a href="${p.liveUrl || `/api/projects/${p.id}/preview`}" target="_blank" class="btn-open-live" style="background: rgba(16, 185, 129, 0.15); color: var(--success); border-color: rgba(16, 185, 129, 0.3);">👁️ Preview</a>
-        <a href="${p.liveUrl}" target="_blank" class="btn-card-action" title="Open Public Gateway / Pages">Pages ↗</a>
-        <button class="btn-card-action" onclick="openProjectInFileManager('${p.id}')" title="Site File Manager">📂 Files</button>
-        <button class="btn-card-action" onclick="openProjectLogs('${p.id}')" title="View Deployment Logs & Diagnostics">📜 Logs</button>
-        <button class="btn-card-action" onclick="openProjectSettings('${p.id}')" title="Environment Variables & Custom Domain">⚙️</button>
-        <button class="btn-card-action" onclick="openProjectHistory('${p.id}')" title="Deployment History & Instant Rollback">⏪</button>
-        <button class="btn-card-action" style="color: var(--danger);" onclick="deleteProject('${p.id}')" title="Delete Deployment">🗑️</button>
+      <div class="card-action-stack">
+        <!-- Dual Primary Action Launchers -->
+        <div class="card-primary-actions">
+          <a href="${p.liveUrl || `/api/projects/${p.id}/preview`}" target="_blank" class="btn-card-primary preview-btn" title="Open Instant Live Preview">
+            <span class="btn-icon">👁️</span> Live Preview
+          </a>
+          <button class="btn-card-primary files-btn" onclick="openProjectInFileManager('${p.id}')" title="Open Site File Manager for ${escapeHtml(p.name || p.slug)}">
+            <span class="btn-icon">📂</span> File Manager
+          </button>
+        </div>
+
+        <!-- Sleek 5-Button Secondary Toolbar (100% inside card width) -->
+        <div class="card-secondary-toolbar">
+          <a href="${p.liveUrl || '#'}" target="_blank" class="tool-btn" title="View Public CDN / GitHub Pages">
+            <span class="tool-icon">🌐</span>
+            <span class="tool-text">Pages</span>
+          </a>
+          <button class="tool-btn" onclick="openProjectLogs('${p.id}')" title="View Real-Time Logs & Diagnostics Doctor">
+            <span class="tool-icon">📜</span>
+            <span class="tool-text">Logs</span>
+          </button>
+          <button class="tool-btn" onclick="openProjectSettings('${p.id}')" title="Configure Domain, DNS & Env Secrets">
+            <span class="tool-icon">⚙️</span>
+            <span class="tool-text">Settings</span>
+          </button>
+          <button class="tool-btn" onclick="openProjectHistory('${p.id}')" title="Deployment History & 1-Click Rollback">
+            <span class="tool-icon">⏪</span>
+            <span class="tool-text">History</span>
+          </button>
+          <button class="tool-btn tool-btn-danger" onclick="deleteProject('${p.id}')" title="Delete Deployment">
+            <span class="tool-icon">🗑️</span>
+          </button>
+        </div>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 async function deleteProject(id) {

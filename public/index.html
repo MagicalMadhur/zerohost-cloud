@@ -19,10 +19,33 @@
     <header class="public-nav-wrapper">
       <div class="public-nav">
         <div class="brand" style="border: none; padding: 0; cursor: pointer;" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
-          <div class="brand-icon">⚡</div>
-          <div class="brand-name">ZeroHost</div>
-          <span class="brand-badge">$0 CLOUD</span>
+        <div class="brand-icon-wrapper">
+          <svg class="brand-logo-svg" width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="zh-grad-main" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#00f2fe" />
+                <stop offset="50%" stop-color="#6366f1" />
+                <stop offset="100%" stop-color="#8b5cf6" />
+              </linearGradient>
+              <linearGradient id="zh-grad-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.8" />
+                <stop offset="100%" stop-color="#a855f7" stop-opacity="0.2" />
+              </linearGradient>
+              <filter id="zh-glow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="2.5" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
+            </defs>
+            <rect x="2" y="2" width="30" height="30" rx="9" fill="url(#zh-grad-glow)" fill-opacity="0.15" stroke="url(#zh-grad-main)" stroke-width="1.5" />
+            <path d="M19 6L9 18H16L14.5 28L25 15H18L19 6Z" fill="url(#zh-grad-main)" filter="url(#zh-glow)" />
+          </svg>
         </div>
+        <div class="brand-text-block">
+          <div class="brand-name">Zero<span class="brand-highlight">Host</span></div>
+          <div class="brand-tagline">CLOUD OS</div>
+        </div>
+        <span class="brand-badge-pill"><span class="badge-dot-live"></span> $0 CLOUD</span>
+      </div>
 
         <nav class="public-nav-links">
           <a href="#features">Features</a>
@@ -426,9 +449,32 @@ DNS Setup for Custom Domains:
     <!-- Console Sidebar -->
     <aside class="sidebar">
       <div class="brand">
-        <div class="brand-icon">⚡</div>
-        <div class="brand-name">ZeroHost</div>
-        <span class="brand-badge">CONSOLE</span>
+        <div class="brand-icon-wrapper">
+          <svg class="brand-logo-svg" width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="zh-grad-main" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#00f2fe" />
+                <stop offset="50%" stop-color="#6366f1" />
+                <stop offset="100%" stop-color="#8b5cf6" />
+              </linearGradient>
+              <linearGradient id="zh-grad-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.8" />
+                <stop offset="100%" stop-color="#a855f7" stop-opacity="0.2" />
+              </linearGradient>
+              <filter id="zh-glow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="2.5" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
+            </defs>
+            <rect x="2" y="2" width="30" height="30" rx="9" fill="url(#zh-grad-glow)" fill-opacity="0.15" stroke="url(#zh-grad-main)" stroke-width="1.5" />
+            <path d="M19 6L9 18H16L14.5 28L25 15H18L19 6Z" fill="url(#zh-grad-main)" filter="url(#zh-glow)" />
+          </svg>
+        </div>
+        <div class="brand-text-block">
+          <div class="brand-name">Zero<span class="brand-highlight">Host</span></div>
+          <div class="brand-tagline">CLOUD OS</div>
+        </div>
+        <span class="brand-badge-pill"><span class="badge-dot-live"></span> PRO</span>
       </div>
 
       <ul class="nav-menu">
@@ -437,9 +483,6 @@ DNS Setup for Custom Domains:
         </li>
         <li class="nav-item" data-tab="wizard">
           <a href="#wizard"><span class="nav-icon">🚀</span> New Deployment</a>
-        </li>
-        <li class="nav-item" data-tab="filemanager">
-          <a href="#filemanager"><span class="nav-icon">📂</span> Site File Manager</a>
         </li>
         <li class="nav-item" data-tab="architecture">
           <a href="#architecture"><span class="nav-icon">📖</span> How to Use & AI Guide</a>
@@ -635,7 +678,12 @@ DNS Setup for Custom Domains:
       <section id="view-filemanager" class="page-view" style="display: none;">
         <div class="view-header">
           <div class="view-title">
-            <h1>Site File Manager & CDN Gateway</h1>
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.35rem;">
+              <button class="tool-btn" onclick="switchTab('projects')" style="padding: 0.35rem 0.75rem; font-size: 0.82rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;">
+                ← Back to Deployments
+              </button>
+              <h1 style="margin-bottom: 0; font-size: 1.6rem;">Site File Manager & CDN Gateway</h1>
+            </div>
             <p>Upload, organize, and edit your website files. Run files serve web pages, and Storage files stream via free global CDN.</p>
           </div>
           <div>

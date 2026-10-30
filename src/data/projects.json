@@ -134,46 +134,5 @@
       "lastResetDate": "2026-10-30",
       "visits": []
     }
-  },
-  {
-    "id": "proj_demo1",
-    "name": "ZeroHost Showcase App",
-    "slug": "zerohost-showcase",
-    "templateId": "landing-page",
-    "computeProvider": "github_pages_jsdelivr",
-    "privateRepo": "https://github.com/demo-creator/zerohost-showcase-source",
-    "publicRepo": "https://github.com/demo-creator/zerohost-showcase-cdn",
-    "liveUrl": "https://demo-creator.github.io/zerohost-showcase-cdn/",
-    "cdnUrl": "https://cdn.jsdelivr.net/gh/demo-creator/zerohost-showcase-cdn@latest/",
-    "status": "active",
-    "createdAt": "2026-10-28T09:21:58.273Z",
-    "logs": [
-      "[14:02:10] Created private source repository",
-      "[14:02:11] Created public CDN gateway",
-      "[14:02:12] GitHub Actions workflow dispatched",
-      "[14:02:14] jsDelivr CDN cache primed",
-      "[13:22:05] Created new file src/contact.html & triggered auto-deploy."
-    ],
-    "files": [
-      {
-        "path": "src/index.html",
-        "content": "<!DOCTYPE html><html><head><title>ZeroHost Showcase</title></head><body><h1>Hosted for $0</h1><p>Source is private. Web is live!</p></body></html>"
-      },
-      {
-        "path": "src/css/style.css",
-        "content": "body { font-family: sans-serif; background: #0b0f19; color: #fff; padding: 2rem; }"
-      },
-      {
-        "path": "src/contact.html",
-        "content": "<!DOCTYPE html><html><body><h1>Contact Us</h1></body></html>"
-      }
-    ],
-    "analytics": {
-      "requestsToday": 0,
-      "totalRequests": 0,
-      "bytesServed": 0,
-      "lastResetDate": "2026-10-30",
-      "visits": []
-    }
   }
 ]
