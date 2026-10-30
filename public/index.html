@@ -442,7 +442,7 @@ DNS Setup for Custom Domains:
           <a href="#filemanager"><span class="nav-icon">📂</span> Site File Manager</a>
         </li>
         <li class="nav-item" data-tab="architecture">
-          <a href="#architecture"><span class="nav-icon">🛡️</span> Zero-Cost Engine</a>
+          <a href="#architecture"><span class="nav-icon">📖</span> How to Use & AI Guide</a>
         </li>
         <li class="nav-item" onclick="showPublicSite()">
           <a href="#public"><span class="nav-icon">🌐</span> Public Website</a>
@@ -780,47 +780,344 @@ DNS Setup for Custom Domains:
         <input type="file" id="filemanager-file-input" multiple style="display: none;" onchange="handleFileManagerFileInput(event)">
       </section>
 
-      <!-- View 4: Zero-Cost Engine Info (Protected) -->
+      <!-- View 4: How to Use & AI Architecture Blueprint (Protected) -->
       <section id="view-architecture" class="page-view" style="display: none;">
         <div class="view-header">
           <div class="view-title">
-            <h1>How ZeroHost Works Under the Hood</h1>
-            <p>A dual-repository zero-cost architecture designed for maximum privacy, speed, and zero bills.</p>
+            <h1>📖 How to Use ZeroHost & AI Architecture Blueprint</h1>
+            <p>Understand the dual-repo file transfer engine, build locally with AI, and copy ready-made site templates.</p>
           </div>
         </div>
 
-        <div class="wizard-container">
-          <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-            <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border);">
-              <h3 style="color: var(--accent); margin-bottom: 0.5rem;">🔒 1. Private Source Repository</h3>
-              <p style="color: var(--text-muted); font-size: 0.95rem;">
-                Your original templates, readable CSS/JS code, private API keys, and environment variables stay in a strictly <strong>private</strong> GitHub repository. Nobody on the internet can see your source code.
-              </p>
+        <!-- Guide Subnavigation Pills -->
+        <div class="guide-nav-pills">
+          <button class="guide-nav-pill active" id="pill-guide-transfer" onclick="switchGuideTab('transfer')">
+            <span>🔄</span> 1. How File Transfer Works
+          </button>
+          <button class="guide-nav-pill" id="pill-guide-ai" onclick="switchGuideTab('ai')">
+            <span>🤖</span> 2. AI Ready Architecture & Prompt
+          </button>
+          <button class="guide-nav-pill" id="pill-guide-methods" onclick="switchGuideTab('methods')">
+            <span>💻</span> 3. Local Dev & Upload Methods
+          </button>
+        </div>
+
+        <!-- ==========================================
+             Panel 1: How File Transfer Works
+             ========================================== -->
+        <div class="guide-panel active" id="guide-panel-transfer">
+          <div class="doc-section" style="margin-bottom: 1.5rem;">
+            <h2><span>⚡</span> The Zero-Cost Dual-Repository Pipeline</h2>
+            <p>
+              Traditional hosts like Vercel and Netlify charge exorbitant bandwidth bills ($20–$50/100GB) when users download heavy software or traffic spikes. ZeroHost solves this permanently using an automated <strong>Dual-Repository Architecture</strong>:
+            </p>
+
+            <div class="guide-diagram-flow">
+              <div class="flow-step-card">
+                <div class="flow-step-num"><span>Step 01</span> <span>🔒 PRIVATE</span></div>
+                <div class="flow-step-title">📥 Source Ingestion</div>
+                <div class="flow-step-desc">
+                  You edit files in the File Manager or push via Git CLI into your strictly private repository (<code>&lt;slug&gt;-source</code>). Your readable code, private commits, and secrets stay 100% hidden.
+                </div>
+              </div>
+
+              <div class="flow-step-card">
+                <div class="flow-step-num"><span>Step 02</span> <span>⚙️ ACTIONS</span></div>
+                <div class="flow-step-title">🤖 Automated Build</div>
+                <div class="flow-step-desc">
+                  GitHub Actions runs inside an isolated runner: validates relative paths, compresses stylesheets, strips private references, and prepares production artifacts.
+                </div>
+              </div>
+
+              <div class="flow-step-card">
+                <div class="flow-step-num"><span>Step 03</span> <span>🌍 PUBLIC</span></div>
+                <div class="flow-step-title">📡 Gateway Sync</div>
+                <div class="flow-step-desc">
+                  Only the production-ready <code>src/</code> files and <code>assets/</code> are synchronized to your public gateway (<code>&lt;slug&gt;-cdn</code>). The private repo is never exposed to the public.
+                </div>
+              </div>
+
+              <div class="flow-step-card">
+                <div class="flow-step-num"><span>Step 04</span> <span>🚀 GLOBAL CDN</span></div>
+                <div class="flow-step-title">🌐 Multi-Edge Delivery</div>
+                <div class="flow-step-desc">
+                  <code>src/index.html</code> is served instantly via <strong>GitHub Pages Edge</strong> with automatic SSL, while heavy media and installers stream globally via <strong>jsDelivr CDN</strong> at multi-gigabit speeds.
+                </div>
+              </div>
             </div>
 
-            <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border);">
-              <h3 style="color: var(--primary); margin-bottom: 0.5rem;">⚙️ 2. Automated GitHub Actions Build</h3>
-              <p style="color: var(--text-muted); font-size: 0.95rem;">
-                Whenever you edit a file or deploy, GitHub Actions automatically minifies your HTML, compresses styles, mangles JS variable names, and copies production-ready files to your public gateway repository.
-              </p>
+            <div class="doc-callout">
+              <strong>💡 Total Hosting Bill:</strong> $0.00 / month forever. Bandwidth is unlimited via Cloudflare/Fastly backed multi-CDN nodes.
+            </div>
+          </div>
+
+          <div class="doc-section">
+            <h2><span>📂</span> Folder Separation: Run Files vs Storage Assets</h2>
+            <p>To keep your site fast and avoid hosting traps, ZeroHost strictly divides files into two folders:</p>
+            <div class="doc-code-block">
+ZeroHost Project Structure:
+├── src/                          <-- ⚡ RUN FILES (Web Code)
+│   ├── index.html                (ONLY public entry point - serves as homepage)
+│   ├── css/style.css             (Frontend styles, dark mode, responsive layout)
+│   └── js/main.js                (Client-side interactive scripts)
+└── assets/                       <-- 📦 STORAGE ASSETS (Heavy Media & Downloads)
+    ├── logo.png                  (Brand graphics and screenshots)
+    ├── banner.webp               (High-res hero visuals)
+    ├── App_Installer.exe         (Desktop installer streamed via jsDelivr CDN)
+    └── Extension.zip             (Browser add-ons and binary archives)
+            </div>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             Panel 2: AI Ready Architecture & Prompt
+             ========================================== -->
+        <div class="guide-panel" id="guide-panel-ai">
+          <div class="doc-section" style="margin-bottom: 1.5rem;">
+            <h2><span>🤖</span> Building with AI (ChatGPT, Claude, Cursor, v0)</h2>
+            <p>
+              When asking an AI model to write your website, LLMs often use wrong absolute paths (like <code>/style.css</code> or <code>/assets/image.png</code>) which break on GitHub Pages and subpath CDNs.
+            </p>
+            <p>
+              Use this pre-configured <strong>Master Architecture & AI Prompt</strong> so your AI outputs code that runs out-of-the-box on ZeroHost with zero configuration!
+            </p>
+
+            <div class="rule-grid">
+              <div class="rule-card">
+                <div class="rule-card-header">
+                  <div class="rule-title"><span>🎯</span> 1. Single Public Entry</div>
+                  <span class="rule-badge badge-essential">Essential</span>
+                </div>
+                <div class="flow-step-desc">
+                  Only <code>src/index.html</code> is your public entry point. Do NOT put HTML in subfolders without relative linking.
+                </div>
+              </div>
+
+              <div class="rule-card">
+                <div class="rule-card-header">
+                  <div class="rule-title"><span>🔗</span> 2. Strict Relative Paths</div>
+                  <span class="rule-badge badge-crucial">Crucial</span>
+                </div>
+                <div class="flow-step-desc">
+                  NEVER use leading slashes (e.g. <code>/assets/...</code> or <code>/css/...</code>). ALWAYS use relative paths: <code>assets/logo.png</code> and <code>css/style.css</code>.
+                </div>
+              </div>
+
+              <div class="rule-card">
+                <div class="rule-card-header">
+                  <div class="rule-title"><span>📦</span> 3. Store Binaries in assets/</div>
+                  <span class="rule-badge badge-essential">Essential</span>
+                </div>
+                <div class="flow-step-desc">
+                  Place all images, videos, and <code>.exe</code>/<code>.zip</code> downloads inside the <code>assets/</code> folder for automatic high-speed CDN delivery.
+                </div>
+              </div>
+
+              <div class="rule-card">
+                <div class="rule-card-header">
+                  <div class="rule-title"><span>🔒</span> 4. Zero Repo Leaks</div>
+                  <span class="rule-badge badge-privacy">Privacy</span>
+                </div>
+                <div class="flow-step-desc">
+                  Never hardcode private GitHub repository names (<code>*-source</code>) or GitHub tokens in your front-end code.
+                </div>
+              </div>
             </div>
 
-            <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border);">
-              <h3 style="color: var(--success); margin-bottom: 0.5rem;">🌍 3. Dual Public Gateway & Global CDN</h3>
-              <p style="color: var(--text-muted); font-size: 0.95rem;">
-                Web pages are served seamlessly through <strong>GitHub Pages</strong> (`&lt;username&gt;.github.io/&lt;repo&gt;/`), while heavy assets (JS, CSS, images) are served globally via <strong>jsDelivr CDN</strong> (`cdn.jsdelivr.net`).
-              </p>
-            </div>
+            <!-- Master AI Prompt Box -->
+            <div class="ai-prompt-container">
+              <div class="ai-prompt-header">
+                <div class="ai-prompt-title">
+                  <span>✨</span> MASTER AI SYSTEM PROMPT (Copy & Paste into ChatGPT / Claude / Cursor)
+                </div>
+                <button class="btn-copy-prompt" onclick="copyAiMasterPrompt()">
+                  <span>📋</span> Copy Master AI Prompt
+                </button>
+              </div>
+              <pre class="ai-prompt-code" id="master-ai-prompt-text">You are an expert front-end web developer building a modern, high-performance website for the ZeroHost platform.
 
-            <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border);">
-              <h3 style="color: #f59e0b; margin-bottom: 0.5rem;">⚡ 4. Free Serverless Compute</h3>
-              <p style="color: var(--text-muted); font-size: 0.95rem;">
-                For Node.js and dynamic backends, <strong>Cloudflare Workers</strong> provides 100,000 requests per day for free, talking to your private GitHub repo as a database without needing expensive cloud databases.
-              </p>
+STRICT PLATFORM CONSTRAINTS & ARCHITECTURE:
+1. DIRECTORY STRUCTURE:
+   - src/index.html: The SINGLE public entry file and homepage.
+   - src/css/style.css: All custom styles, themes, responsive CSS, and animations.
+   - src/js/main.js: All client-side JavaScript, DOM interactivity, and dynamic behaviors.
+   - assets/: Storage directory for all images, icons, illustrations, video media, and downloadable binary files (e.g., .exe, .zip, .pdf).
+
+2. RELATIVE PATH CONVENTION (CRITICAL):
+   - GitHub Pages and ZeroHost CDN serve sites on a repository subpath (e.g. https://&lt;user&gt;.github.io/&lt;repo&gt;/).
+   - NEVER use leading slashes (e.g. DO NOT use "/css/style.css" or "/assets/logo.png" or "/index.html").
+   - ALWAYS use clean relative paths:
+     * Stylesheet: &lt;link rel="stylesheet" href="css/style.css"&gt;
+     * JavaScript: &lt;script src="js/main.js" defer&gt;&lt;/script&gt;
+     * Images: &lt;img src="assets/hero.png" alt="Hero"&gt;
+     * Downloads: &lt;a href="assets/app-installer.exe" download&gt;Download&lt;/a&gt;
+
+3. ASSET SEPARATION & PRIVACY:
+   - Heavy media and downloadable files must be referenced from "assets/".
+   - NEVER hardcode private repository URLs (like *-source) or personal GitHub tokens in HTML/JS.
+
+4. DESIGN & PERFORMANCE:
+   - Modern, aesthetic UI with dark-mode elegance, glassmorphism, responsive mobile layout, and zero dependencies.
+   - Pure standalone HTML5, modern CSS3, and ES6+ vanilla JS that works instantly in any browser.
+
+Generate the complete, production-ready code with this exact folder structure.</pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             Panel 3: Local Dev & Upload Methods
+             ========================================= -->
+        <div class="guide-panel" id="guide-panel-methods">
+          <div class="doc-section">
+            <h2><span>💻</span> Three Ways to Upload & Transfer Your Code</h2>
+            <div style="display: flex; flex-direction: column; gap: 1.25rem; margin-top: 1rem;">
+              
+              <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem;">
+                <h3 style="color: var(--accent); margin-bottom: 0.5rem; font-size: 1.05rem;">Method A: In-Browser Site File Manager (Fastest & Zero Git)</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.75rem;">
+                  Perfect for non-technical users or quick edits:
+                </p>
+                <ol style="margin-left: 1.5rem; color: var(--text-muted); font-size: 0.85rem; line-height: 1.8;">
+                  <li>Click <strong>Site File Manager</strong> in the left sidebar.</li>
+                  <li>Drag & drop your <code>index.html</code>, <code>style.css</code>, and <code>main.js</code> into <strong>Upload Run File</strong>.</li>
+                  <li>Drag & drop your images, icons, and software installers into <strong>Upload Storage Asset</strong>.</li>
+                  <li>Click <strong>Save & Deploy</strong>. ZeroHost will automatically commit to your private repo and sync the public CDN!</li>
+                </ol>
+              </div>
+
+              <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem;">
+                <h3 style="color: var(--primary); margin-bottom: 0.5rem; font-size: 1.05rem;">Method B: Local Git CLI / VS Code / Cursor</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.75rem;">
+                  For developers building locally on their PC:
+                </p>
+                <div class="doc-code-block" style="margin-bottom: 0.75rem;">
+# 1. Clone your private source repository:
+git clone https://github.com/&lt;your-username&gt;/&lt;project-slug&gt;-source.git
+cd &lt;project-slug&gt;-source
+
+# 2. Build or edit your site locally (ensure src/index.html & assets/ exist)
+# 3. Test locally using Live Server or: npx serve src
+
+# 4. Push updates to GitHub:
+git add .
+git commit -m "feat: Update website layout"
+git push origin main
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.85rem;">
+                  GitHub Actions will automatically trigger, build the assets, and publish to your public CDN gateway.
+                </p>
+              </div>
+
+              <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem;">
+                <h3 style="color: var(--success); margin-bottom: 0.5rem; font-size: 1.05rem;">Method C: Per-Project Logs & Diagnostic Doctor 🩺</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">
+                  If your site isn't loading or showing a 404, go to <strong>My Deployments</strong> and click <strong>📜 Logs</strong> on your project card. The Diagnostic Doctor will instantly scan your files and tell you if <code>src/index.html</code> is missing or if you have broken leading slashes!
+                </p>
+              </div>
+
             </div>
           </div>
         </div>
       </section>
+    </div>
+  </div>
+
+  <!-- Per-Project Dedicated Logs & Diagnostic Doctor Modal -->
+  <div class="terminal-modal" id="project-logs-modal" style="display: none;">
+    <div class="terminal-box logs-modal-dialog">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+        </div>
+        <div class="terminal-title" id="logs-modal-title">zerohost-project-logs</div>
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <button onclick="refreshProjectLogs()" class="btn-card-action" style="padding: 0.2rem 0.6rem; font-size: 0.75rem;" title="Refresh live logs">🔄 Refresh</button>
+          <button onclick="copyProjectLogs()" class="btn-card-action" style="padding: 0.2rem 0.6rem; font-size: 0.75rem;" title="Copy all logs">📋 Copy</button>
+          <button onclick="closeProjectLogsModal()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; line-height: 1;">×</button>
+        </div>
+      </div>
+
+      <!-- Project Metadata Header Bar -->
+      <div style="padding: 0.75rem 1.25rem; background: #080d1a; border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+        <div>
+          <span style="font-weight: 700; color: #fff; font-size: 1rem;" id="logs-proj-name">project-name</span>
+          <span class="status-tag" style="margin-left: 0.5rem;" id="logs-proj-status"><span class="status-dot"></span> Online</span>
+        </div>
+        <div style="display: flex; gap: 0.5rem; font-size: 0.8rem;">
+          <a href="#" target="_blank" id="logs-link-preview" class="btn-card-action" style="padding: 0.3rem 0.65rem; color: var(--accent); text-decoration: none;">👁️ Instant Preview</a>
+          <a href="#" target="_blank" id="logs-link-pages" class="btn-card-action" style="padding: 0.3rem 0.65rem; text-decoration: none;">Pages ↗</a>
+          <a href="#" target="_blank" id="logs-link-source" class="btn-card-action" style="padding: 0.3rem 0.65rem; color: var(--text-muted); text-decoration: none;">🔒 Source</a>
+        </div>
+      </div>
+
+      <!-- Pipeline Stepper -->
+      <div class="pipeline-stepper" id="logs-pipeline-stepper">
+        <div class="step-item complete" id="pipe-step-1">
+          <div class="step-dot">✓</div>
+          <span>1. Ingest (<span id="pipe-source-name">source</span>)</span>
+        </div>
+        <div class="step-divider complete" id="pipe-div-1"></div>
+        <div class="step-item complete" id="pipe-step-2">
+          <div class="step-dot">✓</div>
+          <span>2. Secrets</span>
+        </div>
+        <div class="step-divider complete" id="pipe-div-2"></div>
+        <div class="step-item complete" id="pipe-step-3">
+          <div class="step-dot">✓</div>
+          <span>3. Actions Build</span>
+        </div>
+        <div class="step-divider complete" id="pipe-div-3"></div>
+        <div class="step-item complete" id="pipe-step-4">
+          <div class="step-dot">✓</div>
+          <span>4. Gateway Sync</span>
+        </div>
+        <div class="step-divider complete" id="pipe-div-4"></div>
+        <div class="step-item complete" id="pipe-step-5">
+          <div class="step-dot">✓</div>
+          <span>5. Edge & CDN</span>
+        </div>
+      </div>
+
+      <!-- Diagnostic Doctor Card -->
+      <div class="doctor-container">
+        <div class="doctor-header">
+          <div class="doctor-title">
+            <span>🩺</span> ZeroHost Diagnostic Doctor
+          </div>
+          <div class="doctor-badge-status" id="doctor-overall-badge">Checking Health...</div>
+        </div>
+        <div class="doctor-list" id="doctor-checklist">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Logs Tab Nav -->
+      <div class="logs-tabs-nav">
+        <div class="logs-tabs-group">
+          <button class="logs-tab-btn active" id="logs-tab-btn-system" onclick="switchLogTab('system')">
+            <span>📜</span> System Deployment Logs
+          </button>
+          <button class="logs-tab-btn" id="logs-tab-btn-github" onclick="switchLogTab('github')">
+            <span>🐙</span> GitHub Actions Runs
+          </button>
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-dim);" id="logs-timestamp">Synced</div>
+      </div>
+
+      <!-- System Logs Pane -->
+      <div class="terminal-logs" id="project-logs-output" style="height: 230px;">
+        <!-- Terminal lines -->
+      </div>
+
+      <!-- GitHub Actions Runs Pane -->
+      <div class="runs-list" id="project-runs-output" style="display: none;">
+        <!-- Run cards -->
+      </div>
+    </div>
+  </div>
     </div>
   </div>
 

@@ -1383,3 +1383,469 @@ body {
   .calc-grid { grid-template-columns: 1fr; }
   .hero-headline { font-size: 2.4rem; }
 }
+
+/* =============================================================================
+   ZeroHost How-To & AI Guide, Stepper, and Diagnostic Doctor Styles
+   ============================================================================= */
+
+/* Guide Subnavigation Pills */
+.guide-nav-pills {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+  background: rgba(15, 23, 42, 0.6);
+  padding: 0.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.guide-nav-pill {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  padding: 0.65rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.guide-nav-pill:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.guide-nav-pill.active {
+  background: var(--surface);
+  color: var(--accent);
+  border-color: rgba(6, 182, 212, 0.3);
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.15);
+}
+
+.guide-panel {
+  display: none;
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+.guide-panel.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Architecture Pipeline Flow Diagram */
+.guide-diagram-flow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin: 1.75rem 0;
+  position: relative;
+}
+
+.flow-step-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  position: relative;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.flow-step-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+}
+
+.flow-step-num {
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: 'Fira Code', monospace;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flow-step-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.flow-step-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* Golden Rules Grid */
+.rule-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+  margin: 1.5rem 0;
+}
+
+.rule-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.rule-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+}
+
+.rule-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rule-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.badge-essential { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+.badge-crucial { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+.badge-privacy { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+
+/* Master AI Prompt Box */
+.ai-prompt-container {
+  background: #090e1a;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 14px;
+  margin: 1.5rem 0;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.ai-prompt-header {
+  background: #111827;
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ai-prompt-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #c7d2fe;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-copy-prompt {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 0.45rem 1rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.2s;
+}
+
+.btn-copy-prompt:hover {
+  background: #4f46e5;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
+}
+
+.ai-prompt-code {
+  padding: 1.25rem;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.85rem;
+  color: #cbd5e1;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+/* Diagnostic Doctor & Dedicated Logs Modal */
+.logs-modal-dialog {
+  max-width: 860px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.pipeline-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #0f172a;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  overflow-x: auto;
+  gap: 0.75rem;
+}
+
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.step-item.active {
+  color: var(--accent);
+}
+
+.step-item.complete {
+  color: var(--success);
+}
+
+.step-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #1e293b;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+}
+
+.step-item.complete .step-dot {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.step-item.active .step-dot {
+  background: rgba(6, 182, 212, 0.2);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 8px rgba(6, 182, 212, 0.4);
+}
+
+.step-divider {
+  flex: 1;
+  height: 2px;
+  background: #1e293b;
+  min-width: 20px;
+}
+
+.step-divider.complete {
+  background: var(--success);
+}
+
+/* Diagnostic Doctor Section */
+.doctor-container {
+  background: #0a0f1d;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.doctor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.doctor-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.doctor-badge-status {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--success);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.doctor-badge-warn {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.doctor-badge-fail {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.doctor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.doctor-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  font-size: 0.8rem;
+}
+
+.doctor-item.pass {
+  border-left: 3px solid var(--success);
+}
+
+.doctor-item.warn {
+  border-left: 3px solid #f59e0b;
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.doctor-item.fail {
+  border-left: 3px solid var(--danger);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.doctor-item-icon {
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.doctor-item-content {
+  flex: 1;
+}
+
+.doctor-item-title {
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.15rem;
+}
+
+.doctor-item-desc {
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* Logs Tab Navigation in Modal */
+.logs-tabs-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #111827;
+  padding: 0.4rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.logs-tabs-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.logs-tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.logs-tab-btn:hover {
+  color: var(--text-main);
+}
+
+.logs-tab-btn.active {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* GitHub Action Workflow Runs List */
+.runs-list {
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  height: 260px;
+  overflow-y: auto;
+}
+
+.run-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #0a0f1d;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  font-size: 0.8rem;
+}
+
+.run-card:hover {
+  border-color: rgba(6, 182, 212, 0.3);
+}
+
+/* Toast Notification */
+.toast-notification {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: #111827;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #fff;
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+  z-index: 9999;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}

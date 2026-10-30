@@ -558,8 +558,9 @@ function renderProjects(projects) {
       <div class="project-actions">
         <a href="${p.liveUrl || `/api/projects/${p.id}/preview`}" target="_blank" class="btn-open-live" style="background: rgba(16, 185, 129, 0.15); color: var(--success); border-color: rgba(16, 185, 129, 0.3);">👁️ Preview</a>
         <a href="${p.liveUrl}" target="_blank" class="btn-card-action" title="Open Public Gateway / Pages">Pages ↗</a>
-        <button class="btn-card-action" onclick="openProjectInFileManager('${p.id}')">📂 File Manager</button>
-        <button class="btn-card-action" style="color: var(--danger);" onclick="deleteProject('${p.id}')">🗑️</button>
+        <button class="btn-card-action" onclick="openProjectInFileManager('${p.id}')">📂 Files</button>
+        <button class="btn-card-action" onclick="openProjectLogs('${p.id}')" title="View Deployment Logs & Diagnostics">📜 Logs</button>
+        <button class="btn-card-action" style="color: var(--danger);" onclick="deleteProject('${p.id}')" title="Delete Deployment">🗑️</button>
       </div>
     </div>
   `).join('');
@@ -947,5 +948,329 @@ async function deleteActiveFile() {
     showNotification(`🗑️ Deleted file!`);
   } catch (err) {
     alert('Delete error: ' + err.message);
+  }
+}
+
+// =============================================================================
+// Helper: Safe HTML Escaping
+// =============================================================================
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// =============================================================================
+// How-To Guide & AI Master Architecture Sub-Navigation & Copy
+// =============================================================================
+
+function switchGuideTab(tabName) {
+  const tabs = ['transfer', 'ai', 'methods'];
+  tabs.forEach(t => {
+    const pill = document.getElementById(`pill-guide-${t}`);
+    const panel = document.getElementById(`guide-panel-${t}`);
+    if (pill) pill.classList.toggle('active', t === tabName);
+    if (panel) panel.classList.toggle('active', t === tabName);
+  });
+}
+
+async function copyAiMasterPrompt() {
+  const promptEl = document.getElementById('master-ai-prompt-text');
+  if (!promptEl) return;
+  const promptText = promptEl.textContent || promptEl.innerText;
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(promptText);
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = promptText;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    showNotification('📋 Master AI Prompt copied to clipboard! Paste it into ChatGPT, Claude, or Cursor.', 'success');
+  } catch (err) {
+    showNotification('Copied to clipboard!', 'info');
+  }
+}
+
+// =============================================================================
+// Dedicated Per-Project Deployment Logs & Diagnostic Doctor Modal
+// =============================================================================
+
+state.activeLogsProjectId = null;
+state.currentLogsData = null;
+
+async function openProjectLogs(projectId) {
+  state.activeLogsProjectId = projectId;
+  const modal = document.getElementById('project-logs-modal');
+  if (!modal) return;
+
+  modal.style.display = 'flex';
+  
+  // Set initial loading state
+  const logsOutput = document.getElementById('project-logs-output');
+  if (logsOutput) {
+    logsOutput.innerHTML = '<div style="color: var(--text-dim); padding: 1rem;">🔄 Fetching real-time logs and running diagnostic doctor...</div>';
+  }
+
+  await fetchAndRenderProjectLogs(projectId);
+}
+
+function closeProjectLogsModal() {
+  const modal = document.getElementById('project-logs-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function refreshProjectLogs() {
+  if (!state.activeLogsProjectId) return;
+  await fetchAndRenderProjectLogs(state.activeLogsProjectId);
+  showNotification('🔄 Deployment logs & diagnostics refreshed!', 'info');
+}
+
+async function fetchAndRenderProjectLogs(projectId) {
+  try {
+    const res = await fetch(`/api/projects/${projectId}/logs`);
+    if (!res.ok) throw new Error('Failed to load project logs');
+    const data = await res.json();
+    state.currentLogsData = data.project;
+    renderProjectLogsData(data.project);
+  } catch (err) {
+    console.error('Error fetching project logs:', err);
+    const logsOutput = document.getElementById('project-logs-output');
+    if (logsOutput) {
+      logsOutput.innerHTML = `<div style="color: var(--danger); padding: 1rem;">❌ Failed to load logs: ${err.message}</div>`;
+    }
+  }
+}
+
+function renderProjectLogsData(project) {
+  // Title & status
+  const titleEl = document.getElementById('logs-proj-name');
+  const statusEl = document.getElementById('logs-proj-status');
+  const modalTitle = document.getElementById('logs-modal-title');
+  const timestampEl = document.getElementById('logs-timestamp');
+
+  if (titleEl) titleEl.textContent = project.name || project.slug;
+  if (modalTitle) modalTitle.textContent = `zerohost-logs (${project.slug})`;
+  if (statusEl) {
+    statusEl.innerHTML = `<span class="status-dot"></span> ${project.status || 'Online'}`;
+  }
+  if (timestampEl) {
+    timestampEl.textContent = `Last synced: ${new Date().toLocaleTimeString()}`;
+  }
+
+  // Links
+  const linkPreview = document.getElementById('logs-link-preview');
+  const linkPages = document.getElementById('logs-link-pages');
+  const linkSource = document.getElementById('logs-link-source');
+  const pipeSourceName = document.getElementById('pipe-source-name');
+
+  if (linkPreview) linkPreview.href = project.liveUrl || `/api/projects/${project.id}/preview`;
+  if (linkPages) linkPages.href = project.liveUrl || '#';
+  if (linkSource) linkSource.href = project.privateRepo || '#';
+  if (pipeSourceName) pipeSourceName.textContent = `${project.slug}-source`;
+
+  // Pipeline stepper state
+  updatePipelineStepper(project);
+
+  // Diagnostic Doctor checks
+  renderDiagnosticDoctor(project.diagnostics || []);
+
+  // System Logs
+  renderSystemLogs(project.logs || []);
+
+  // GitHub Actions Runs
+  renderWorkflowRuns(project.runs || []);
+}
+
+function updatePipelineStepper(project) {
+  const steps = [
+    { id: 'pipe-step-1', div: 'pipe-div-1', complete: true },
+    { id: 'pipe-step-2', div: 'pipe-div-2', complete: true },
+    { id: 'pipe-step-3', div: 'pipe-div-3', complete: true },
+    { id: 'pipe-step-4', div: 'pipe-div-4', complete: !!project.publicRepo },
+    { id: 'pipe-step-5', div: null, complete: !!project.liveUrl }
+  ];
+
+  steps.forEach(s => {
+    const el = document.getElementById(s.id);
+    const div = s.div ? document.getElementById(s.div) : null;
+    if (el) {
+      el.classList.toggle('complete', s.complete);
+      el.classList.toggle('active', !s.complete);
+    }
+    if (div) {
+      div.classList.toggle('complete', s.complete);
+    }
+  });
+}
+
+function renderDiagnosticDoctor(diagnostics) {
+  const container = document.getElementById('doctor-checklist');
+  const overallBadge = document.getElementById('doctor-overall-badge');
+  if (!container) return;
+
+  if (!diagnostics || diagnostics.length === 0) {
+    container.innerHTML = `<div style="color: var(--text-dim); font-size: 0.8rem;">No diagnostic checks recorded.</div>`;
+    if (overallBadge) {
+      overallBadge.className = 'doctor-badge-status';
+      overallBadge.textContent = 'All Checks Passed';
+    }
+    return;
+  }
+
+  const hasFail = diagnostics.some(d => d.level === 'fail');
+  const hasWarn = diagnostics.some(d => d.level === 'warn');
+
+  if (overallBadge) {
+    if (hasFail) {
+      overallBadge.className = 'doctor-badge-status doctor-badge-fail';
+      overallBadge.textContent = '❌ Action Required';
+    } else if (hasWarn) {
+      overallBadge.className = 'doctor-badge-status doctor-badge-warn';
+      overallBadge.textContent = '⚠️ Recommendations Found';
+    } else {
+      overallBadge.className = 'doctor-badge-status';
+      overallBadge.textContent = '✅ All Checks Passed';
+    }
+  }
+
+  container.innerHTML = diagnostics.map(d => {
+    let icon = '✅';
+    let itemClass = 'pass';
+    if (d.level === 'warn') {
+      icon = '⚠️';
+      itemClass = 'warn';
+    } else if (d.level === 'fail') {
+      icon = '❌';
+      itemClass = 'fail';
+    }
+
+    return `
+      <div class="doctor-item ${itemClass}">
+        <span class="doctor-item-icon">${icon}</span>
+        <div class="doctor-item-content">
+          <div class="doctor-item-title">${d.title}</div>
+          <div class="doctor-item-desc">${d.desc}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderSystemLogs(logs) {
+  const container = document.getElementById('project-logs-output');
+  if (!container) return;
+
+  if (!logs || logs.length === 0) {
+    container.innerHTML = '<div style="color: var(--text-dim); padding: 1rem;">No log lines available.</div>';
+    return;
+  }
+
+  container.innerHTML = logs.map(line => {
+    const isError = line.includes('❌') || line.toLowerCase().includes('error') || line.toLowerCase().includes('fail');
+    const isSuccess = line.includes('✅') || line.includes('🎉') || line.toLowerCase().includes('success');
+    const isWarn = line.includes('⚠️') || line.toLowerCase().includes('warn');
+
+    let color = '#38bdf8';
+    if (isError) color = '#f87171';
+    else if (isSuccess) color = '#34d399';
+    else if (isWarn) color = '#fbbf24';
+
+    return `<div style="color: ${color}; line-height: 1.6; margin-bottom: 2px;">${escapeHtml(line)}</div>`;
+  }).join('');
+
+  container.scrollTop = container.scrollHeight;
+}
+
+function renderWorkflowRuns(runs) {
+  const container = document.getElementById('project-runs-output');
+  if (!container) return;
+
+  if (!runs || runs.length === 0) {
+    container.innerHTML = `
+      <div style="color: var(--text-muted); font-size: 0.85rem; padding: 1.5rem; text-align: center;">
+        <p>No recent GitHub Actions workflow runs found or token in demo mode.</p>
+        <p style="font-size: 0.75rem; color: var(--text-dim); margin-top: 0.4rem;">
+          Connect your GitHub account to stream live CI/CD run history directly from your source repository.
+        </p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = runs.map(r => {
+    const isSuccess = r.conclusion === 'success';
+    const isFailed = r.conclusion === 'failure';
+    const pillColor = isSuccess ? 'var(--success)' : (isFailed ? 'var(--danger)' : '#f59e0b');
+    const statusText = r.conclusion || r.status || 'in_progress';
+
+    return `
+      <div class="run-card">
+        <div>
+          <div style="font-weight: 700; color: #fff; margin-bottom: 0.2rem;">
+            ${escapeHtml(r.commitMessage)}
+          </div>
+          <div style="font-size: 0.75rem; color: var(--text-dim); font-family: monospace;">
+            Run #${r.id} • ${new Date(r.createdAt).toLocaleString()}
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <span style="font-size: 0.75rem; font-weight: 700; color: ${pillColor}; text-transform: uppercase;">
+            ${statusText}
+          </span>
+          ${r.htmlUrl ? `<a href="${r.htmlUrl}" target="_blank" class="btn-card-action" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; text-decoration: none;">View on GitHub ↗</a>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function switchLogTab(tabName) {
+  const btnSystem = document.getElementById('logs-tab-btn-system');
+  const btnGithub = document.getElementById('logs-tab-btn-github');
+  const paneSystem = document.getElementById('project-logs-output');
+  const paneGithub = document.getElementById('project-runs-output');
+
+  if (tabName === 'system') {
+    if (btnSystem) btnSystem.classList.add('active');
+    if (btnGithub) btnGithub.classList.remove('active');
+    if (paneSystem) paneSystem.style.display = 'block';
+    if (paneGithub) paneGithub.style.display = 'none';
+  } else {
+    if (btnSystem) btnSystem.classList.remove('active');
+    if (btnGithub) btnGithub.classList.add('active');
+    if (paneSystem) paneSystem.style.display = 'none';
+    if (paneGithub) paneGithub.style.display = 'flex';
+  }
+}
+
+async function copyProjectLogs() {
+  if (!state.currentLogsData || !state.currentLogsData.logs) {
+    showNotification('No logs to copy.', 'error');
+    return;
+  }
+  const text = state.currentLogsData.logs.join('\n');
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    showNotification('📋 Deployment logs copied to clipboard!', 'success');
+  } catch (err) {
+    showNotification('Copied to clipboard!', 'info');
   }
 }
